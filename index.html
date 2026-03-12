@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FUFU Intelligence | BitFuFu Inc</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛏️</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Password Gate -->
+    <div id="auth-gate" class="auth-gate">
+        <div class="auth-card">
+            <div class="auth-logo">⛏️</div>
+            <h1>FUFU Intelligence</h1>
+            <p class="auth-subtitle">BitFuFu Inc — Private Dashboard</p>
+            <form id="auth-form" onsubmit="return false;">
+                <input type="password" id="auth-password" placeholder="Enter access code" autocomplete="off" autofocus>
+                <button type="submit" id="auth-submit">Access</button>
+                <p id="auth-error" class="auth-error"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (hidden until auth) -->
+    <div id="dashboard" class="dashboard hidden">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <span class="header-logo">⛏️</span>
+                <h1 class="header-title">FUFU Intelligence</h1>
+                <span class="header-badge">PRIVATE</span>
+            </div>
+            <div class="header-right">
+                <div id="price-display" class="price-display">
+                    <span class="price-label">FUFU</span>
+                    <span id="fufu-price" class="price-value">--</span>
+                    <span id="fufu-change" class="price-change">--</span>
+                </div>
+                <div id="btc-display" class="price-display">
+                    <span class="price-label">BTC</span>
+                    <span id="btc-price" class="price-value">--</span>
+                </div>
+                <button id="refresh-btn" class="icon-btn" title="Refresh All">↻</button>
+                <button id="logout-btn" class="icon-btn" title="Logout">⏻</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-tab active" data-section="overview">Overview</button>
+            <button class="nav-tab" data-section="insider">Insider Trades</button>
+            <button class="nav-tab" data-section="institutions">Institutions</button>
+            <button class="nav-tab" data-section="short">Short Interest</button>
+            <button class="nav-tab" data-section="events">Events</button>
+            <button class="nav-tab" data-section="technicals">Technicals</button>
+        </nav>
+
+        <!-- Sections -->
+        <main class="main">
+            <!-- Overview -->
+            <section id="sec-overview" class="section active">
+                <div class="grid-3">
+                    <div class="card" id="card-entity">
+                        <h3>Company Profile</h3>
+                        <div id="entity-content" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card" id="card-short-summary">
+                        <h3>Short Interest Summary</h3>
+                        <div id="short-summary-content" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card" id="card-darkpool">
+                        <h3>Dark Pool Activity</h3>
+                        <div id="darkpool-content" class="card-body">Loading...</div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Recent Insider Trades</h3>
+                        <div id="insider-preview" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Recent Events (8-K)</h3>
+                        <div id="events-preview" class="card-body">Loading...</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Corporate Actions</h3>
+                    <div id="actions-content" class="card-body">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Insider Trades -->
+            <section id="sec-insider" class="section">
+                <div class="card full">
+                    <h3>SEC Form 4 — Insider Transactions</h3>
+                    <div id="insider-full" class="card-body">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Institutions -->
+            <section id="sec-institutions" class="section">
+                <div class="card full">
+                    <h3>SEC 13F — Institutional Holdings</h3>
+                    <div id="institutions-full" class="card-body">Loading...</div>
+                </div>
+                <div class="card full" style="margin-top:16px;">
+                    <h3>SC 13G/13D — Major Shareholders (5%+)</h3>
+                    <div id="ownership-full" class="card-body">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Short Interest -->
+            <section id="sec-short" class="section">
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Short Interest History</h3>
+                        <div id="short-full" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Dark Pool Volume</h3>
+                        <div id="darkpool-full" class="card-body">Loading...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Events -->
+            <section id="sec-events" class="section">
+                <div class="card full">
+                    <h3>SEC 8-K Material Events</h3>
+                    <div id="events-full" class="card-body">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Technicals -->
+            <section id="sec-technicals" class="section">
+                <div class="card full">
+                    <h3>Technical Indicators</h3>
+                    <div id="technicals-content" class="card-body">Loading...</div>
+                </div>
+                <div class="card full" style="margin-top:16px;">
+                    <h3>BTC Correlation</h3>
+                    <div id="correlation-content" class="card-body">Loading...</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <span>FUFU Intelligence — Private Dashboard</span>
+            <span id="last-update">Last update: --</span>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
