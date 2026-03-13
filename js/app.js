@@ -123,6 +123,7 @@ async function loadAllData() {
         DATA.correlation = { correlations: dashboard.correlation?.data ? { [SYMBOL]: dashboard.correlation.data } : {} };
         DATA.alerts = { alerts: dashboard.alerts || [] };
         DATA.market = dashboard.market || null;
+        DATA.marketPeers = dashboard.market_peers || null;
         // Price
         DATA.quote = dashboard.price ? { [SYMBOL]: dashboard.price } : null;
         DATA.btc = dashboard.btc_price ? { price: dashboard.btc_price } : null;
@@ -477,6 +478,7 @@ function renderMarketData() {
     renderMarketPressure(m);
     renderMarketProfile(m);
     renderMarketIntraday(m);
+    renderMarketPeers(m, DATA.marketPeers);
 }
 
 function renderMarketOrderbook(m) {
@@ -615,6 +617,36 @@ function renderMarketIntraday(m) {
     }
     html += '</div>';
     el.innerHTML = html;
+}
+
+function renderMarketPeers(m, peers) {
+    const el = document.getElementById("market-peers");
+    if (!peers || !Object.keys(peers).length) { el.innerHTML = '<div class="empty">No peer data</div>'; return; }
+
+    // Build combined array with FUFU first
+    const rows = [];
+    if (m) rows.push({ sym: SYMBOL, ...m });
+    for (const [sym, p] of Object.entries(peers)) {
+        rows.push({ sym, ...p });
+    }
+
+    el.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
+        <thead><tr>
+            <th>Symbol</th><th class="num">Price</th><th class="num">Change</th>
+            <th class="num">Volume</th><th class="num">RVol</th><th class="num">Spread%</th>
+            <th class="num">Buy%</th><th class="num">Mkt Cap</th>
+        </tr></thead>
+        <tbody>${rows.map(r => `<tr${r.sym === SYMBOL ? ' style="background:rgba(245,158,11,.08)"' : ''}>
+            <td style="font-weight:700;${r.sym === SYMBOL ? 'color:var(--accent)' : ''}">${r.sym}</td>
+            <td class="num">$${Number(r.price).toFixed(2)}</td>
+            <td class="num" style="color:${r.change_pct >= 0 ? 'var(--green)' : 'var(--red)'}">${r.change_pct > 0 ? '+' : ''}${Number(r.change_pct).toFixed(2)}%</td>
+            <td class="num">${fmtNum(r.volume)}</td>
+            <td class="num"><span class="rvol-badge ${r.relative_volume >= 2 ? 'rvol-high' : r.relative_volume >= 0.8 ? 'rvol-normal' : 'rvol-low'}">${r.relative_volume}x</span></td>
+            <td class="num">${Number(r.spread_pct).toFixed(2)}%</td>
+            <td class="num">${Number(r.buy_pct).toFixed(1)}%</td>
+            <td class="num">${fmtNum(r.market_cap)}</td>
+        </tr>`).join("")}</tbody>
+    </table></div>`;
 }
 
 // ─── Utilities ──────────────────────────────────────────
