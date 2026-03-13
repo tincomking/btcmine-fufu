@@ -667,100 +667,119 @@ function renderMarketOrderbook(m) {
 function renderMarketDepth() {
     const el = document.getElementById("market-depth");
     if (!el) return;
-    const wb = DATA.webull;
-    const depth = wb && wb.depth;
-    if (!depth || (!depth.bids && !depth.asks) || ((!depth.bids || !depth.bids.length) && (!depth.asks || !depth.asks.length))) {
-        el.innerHTML = '<div class="empty"><span class="lang-zh">L2 深度数据仅在美股盘中可用（美东 9:30-16:00 / 新加坡 21:30-04:00）。盘中数据将自动缓存至下次开盘。</span><span class="lang-en" style="display:none">L2 depth only available during US market hours (ET 9:30-16:00 / SGT 21:30-04:00). Data is cached once captured.</span></div>';
-        // re-apply lang
-        const lang = (typeof loadPrefs === "function") ? loadPrefs().lang : "zh";
-        if (lang === "en") {
-            el.querySelectorAll(".lang-zh").forEach(e => e.style.display = "none");
-            el.querySelectorAll(".lang-en").forEach(e => e.style.display = "");
-        }
+    const m = DATA.market;
+    const candles = m && m.intraday;
+    if (!candles || !candles.length) {
+        el.innerHTML = '<div class="empty">No intraday data available for depth analysis</div>';
         return;
     }
-    const bids = (depth.bids || []).slice(0, 10);
-    const asks = (depth.asks || []).slice(0, 10);
-    const maxVol = Math.max(
-        ...bids.map(b => b.volume || 0),
-        ...asks.map(a => a.volume || 0),
-        1
-    );
 
-    // Build a side-by-side depth view
+    // Aggregate volume by price level, split into buy (close>open) and sell (close<open)
+    const currentPrice = m.price || candles[candles.length - 1].close;
+    const step = 0.01; // $0.01 per level
+    const buckets = {}; // price -> { buy: vol, sell: vol }
+
+    for (const c of candles) {
+        const mid = ((c.high + c.low) / 2);
+        const priceKey = (Math.round(mid / step) * step).toFixed(2);
+        if (!buckets[priceKey]) buckets[priceKey] = { buy: 0, sell: 0 };
+        if (c.close >= c.open) {
+            buckets[priceKey].buy += (c.volume || 0);
+        } else {
+            buckets[priceKey].sell += (c.volume || 0);
+        }
+    }
+
+    // Sort by price descending, limit to reasonable number of levels
+    let levels = Object.entries(buckets)
+        .map(([price, vols]) => ({ price: parseFloat(price), buy: vols.buy, sell: vols.sell, total: vols.buy + vols.sell }))
+        .filter(l => l.total > 0)
+        .sort((a, b) => b.price - a.price);
+
+    // If too many levels, merge into wider buckets
+    if (levels.length > 20) {
+        const allPrices = levels.map(l => l.price);
+        const minP = Math.min(...allPrices);
+        const maxP = Math.max(...allPrices);
+        const range = maxP - minP;
+        const bucketSize = Math.max(0.02, Math.ceil(range / 15 * 100) / 100);
+        const merged = {};
+        for (const l of levels) {
+            const key = (Math.round(l.price / bucketSize) * bucketSize).toFixed(2);
+            if (!merged[key]) merged[key] = { price: parseFloat(key), buy: 0, sell: 0, total: 0 };
+            merged[key].buy += l.buy;
+            merged[key].sell += l.sell;
+            merged[key].total += l.total;
+        }
+        levels = Object.values(merged).sort((a, b) => b.price - a.price);
+    }
+
+    if (!levels.length) {
+        el.innerHTML = '<div class="empty">No trade data to build depth</div>';
+        return;
+    }
+
+    const maxVol = Math.max(...levels.map(l => Math.max(l.buy, l.sell)), 1);
+    const totalBuy = levels.reduce((s, l) => s + l.buy, 0);
+    const totalSell = levels.reduce((s, l) => s + l.sell, 0);
+
     let html = '<div class="depth-container">';
 
     // Header
     html += '<div class="depth-header">';
-    html += '<span class="depth-h-left">BID (Buy)</span>';
-    html += '<span class="depth-h-center">Price</span>';
-    html += '<span class="depth-h-right">ASK (Sell)</span>';
+    html += '<span class="depth-h-left">BUY VOL</span>';
+    html += '<span class="depth-h-center">PRICE</span>';
+    html += '<span class="depth-h-right">SELL VOL</span>';
     html += '</div>';
 
-    const rows = Math.max(bids.length, asks.length);
-    for (let i = 0; i < rows; i++) {
-        const bid = bids[i];
-        const ask = asks[i];
-        const bidPct = bid ? (bid.volume / maxVol * 100) : 0;
-        const askPct = ask ? (ask.volume / maxVol * 100) : 0;
+    // Rows
+    for (const lv of levels) {
+        const buyPct = (lv.buy / maxVol * 100);
+        const sellPct = (lv.sell / maxVol * 100);
+        const isCurrent = Math.abs(lv.price - currentPrice) <= 0.02;
 
-        html += '<div class="depth-row">';
+        html += `<div class="depth-row${isCurrent ? ' depth-row-current' : ''}">`;
 
-        // Bid side (right-aligned bar)
+        // Buy side
         html += '<div class="depth-bid-cell">';
-        if (bid) {
-            html += `<span class="depth-vol">${fmtNum(bid.volume)}</span>`;
-            html += `<div class="depth-bar-wrap depth-bar-bid-wrap"><div class="depth-bar depth-bar-bid" style="width:${bidPct}%"></div></div>`;
+        if (lv.buy > 0) {
+            html += `<span class="depth-vol">${fmtNum(lv.buy)}</span>`;
+            html += `<div class="depth-bar-wrap depth-bar-bid-wrap"><div class="depth-bar depth-bar-bid" style="width:${buyPct}%"></div></div>`;
         }
         html += '</div>';
 
-        // Price column
-        html += '<div class="depth-price-cell">';
-        if (bid) html += `<span class="depth-price-bid">$${Number(bid.price).toFixed(2)}</span>`;
-        if (bid && ask) html += ' <span class="depth-price-sep">|</span> ';
-        else if (!bid && ask) html += '<span class="depth-price-empty"></span>';
-        if (ask) html += `<span class="depth-price-ask">$${Number(ask.price).toFixed(2)}</span>`;
-        html += '</div>';
+        // Price
+        html += `<div class="depth-price-cell"><span class="${isCurrent ? 'depth-price-current' : ''}" style="color:${lv.price >= currentPrice ? 'var(--green)' : 'var(--red)'}">$${lv.price.toFixed(2)}</span></div>`;
 
-        // Ask side (left-aligned bar)
+        // Sell side
         html += '<div class="depth-ask-cell">';
-        if (ask) {
-            html += `<div class="depth-bar-wrap depth-bar-ask-wrap"><div class="depth-bar depth-bar-ask" style="width:${askPct}%"></div></div>`;
-            html += `<span class="depth-vol">${fmtNum(ask.volume)}</span>`;
+        if (lv.sell > 0) {
+            html += `<div class="depth-bar-wrap depth-bar-ask-wrap"><div class="depth-bar depth-bar-ask" style="width:${sellPct}%"></div></div>`;
+            html += `<span class="depth-vol">${fmtNum(lv.sell)}</span>`;
         }
         html += '</div>';
 
         html += '</div>';
     }
 
-    // Summary
-    const totalBidVol = bids.reduce((s, b) => s + (b.volume || 0), 0);
-    const totalAskVol = asks.reduce((s, a) => s + (a.volume || 0), 0);
-    const totalVol = totalBidVol + totalAskVol || 1;
-    const bidPctTotal = (totalBidVol / totalVol * 100).toFixed(1);
-    const askPctTotal = (totalAskVol / totalVol * 100).toFixed(1);
-    const imbalance = totalBidVol > totalAskVol ? "BUY" : totalAskVol > totalBidVol ? "SELL" : "EVEN";
-    const imbClass = imbalance === "BUY" ? "depth-imb-buy" : imbalance === "SELL" ? "depth-imb-sell" : "depth-imb-even";
+    // Summary bar
+    const totalVol = totalBuy + totalSell || 1;
+    const buyPctTotal = (totalBuy / totalVol * 100).toFixed(1);
+    const sellPctTotal = (totalSell / totalVol * 100).toFixed(1);
+    const imbalance = totalBuy > totalSell * 1.1 ? "BUY DOMINANT" : totalSell > totalBuy * 1.1 ? "SELL DOMINANT" : "BALANCED";
+    const imbClass = imbalance.startsWith("BUY") ? "depth-imb-buy" : imbalance.startsWith("SELL") ? "depth-imb-sell" : "depth-imb-even";
 
     html += '<div class="depth-summary">';
     html += `<div class="depth-summary-bar">`;
-    html += `<div class="depth-sum-bid" style="width:${bidPctTotal}%">${bidPctTotal}%</div>`;
-    html += `<div class="depth-sum-ask" style="width:${askPctTotal}%">${askPctTotal}%</div>`;
+    html += `<div class="depth-sum-bid" style="width:${buyPctTotal}%">${buyPctTotal}%</div>`;
+    html += `<div class="depth-sum-ask" style="width:${sellPctTotal}%">${sellPctTotal}%</div>`;
     html += `</div>`;
     html += `<div class="depth-summary-text">`;
-    html += `<span>Bid Vol: ${fmtNum(totalBidVol)}</span>`;
-    html += `<span class="${imbClass}">Imbalance: ${imbalance}</span>`;
-    html += `<span>Ask Vol: ${fmtNum(totalAskVol)}</span>`;
+    html += `<span>Buy: ${fmtNum(totalBuy)}</span>`;
+    html += `<span class="${imbClass}">${imbalance}</span>`;
+    html += `<span>Sell: ${fmtNum(totalSell)}</span>`;
     html += `</div>`;
     html += '</div>';
-
-    // Show depth timestamp if cached
-    const depthTs = wb.depth_ts;
-    if (depthTs) {
-        const d = new Date(depthTs);
-        const tsStr = d.toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
-        html += `<div style="text-align:right;font-size:11px;color:var(--text-muted);margin-top:6px">Snapshot: ${tsStr} ET</div>`;
-    }
 
     html += '</div>';
     el.innerHTML = html;
