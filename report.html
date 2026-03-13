@@ -29,7 +29,7 @@
             <div class="header-left">
                 <a href="index.html" class="back-link" title="Back to Dashboard">← Dashboard</a>
                 <span class="header-logo">⛏️</span>
-                <h1 class="header-title">FUFU Daily Report</h1>
+                <h1 class="header-title" data-zh="FUFU 日报" data-en="FUFU Daily Report">FUFU Daily Report</h1>
                 <span class="header-badge">CONFIDENTIAL</span>
             </div>
             <div class="header-right">
@@ -40,6 +40,7 @@
                     <input type="date" id="date-picker" class="report-select" title="Pick a date">
                     <button id="print-btn" class="icon-btn" title="Export PDF">🖨</button>
                 </div>
+                <div id="prefs-container"></div>
                 <button id="logout-btn" class="icon-btn" title="Logout">⏻</button>
             </div>
         </header>
@@ -77,73 +78,73 @@
 
             <!-- Section 1: Executive Snapshot -->
             <section class="report-section" id="sec-snapshot">
-                <h2 class="report-section-title">1. Executive Snapshot</h2>
+                <h2 class="report-section-title" data-zh="1. 执行摘要" data-en="1. Executive Snapshot">1. Executive Snapshot</h2>
                 <div id="snapshot-content"></div>
             </section>
 
             <!-- Section 2: Price Action & Trading -->
             <section class="report-section" id="sec-price-action">
-                <h2 class="report-section-title">2. Price Action & Trading</h2>
+                <h2 class="report-section-title" data-zh="2. 价格行情与交易" data-en="2. Price Action & Trading">2. Price Action & Trading</h2>
                 <div id="price-action-content"></div>
             </section>
 
             <!-- Section 3: Capital Flow -->
             <section class="report-section" id="sec-capital-flow">
-                <h2 class="report-section-title">3. Capital Flow (Webull)</h2>
+                <h2 class="report-section-title" data-zh="3. 资金流向 (Webull)" data-en="3. Capital Flow (Webull)">3. Capital Flow (Webull)</h2>
                 <div id="capital-flow-content"></div>
             </section>
 
             <!-- Section 4: After Hours -->
             <section class="report-section" id="sec-after-hours">
-                <h2 class="report-section-title">4. After Hours</h2>
+                <h2 class="report-section-title" data-zh="4. 盘后交易" data-en="4. After Hours">4. After Hours</h2>
                 <div id="after-hours-content"></div>
             </section>
 
             <!-- Section 5: Technical Signals -->
             <section class="report-section" id="sec-tech-signals">
-                <h2 class="report-section-title">5. Technical Signals</h2>
+                <h2 class="report-section-title" data-zh="5. 技术信号" data-en="5. Technical Signals">5. Technical Signals</h2>
                 <div id="tech-signals-content"></div>
             </section>
 
             <!-- Section 6: Analyst Coverage -->
             <section class="report-section" id="sec-analyst">
-                <h2 class="report-section-title">6. Analyst Coverage</h2>
+                <h2 class="report-section-title" data-zh="6. 分析师覆盖" data-en="6. Analyst Coverage">6. Analyst Coverage</h2>
                 <div id="analyst-content"></div>
             </section>
 
             <!-- Section 7: Peer Comparison -->
             <section class="report-section" id="sec-peers">
-                <h2 class="report-section-title">7. Peer Comparison</h2>
+                <h2 class="report-section-title" data-zh="7. 同行对比" data-en="7. Peer Comparison">7. Peer Comparison</h2>
                 <div id="peers-content"></div>
             </section>
 
             <!-- Section 8: Valuation & Fundamentals -->
             <section class="report-section" id="sec-valuation">
-                <h2 class="report-section-title">8. Valuation & Fundamentals</h2>
+                <h2 class="report-section-title" data-zh="8. 估值与基本面" data-en="8. Valuation & Fundamentals">8. Valuation & Fundamentals</h2>
                 <div id="valuation-content"></div>
             </section>
 
             <!-- Section 9: Short Interest & Dark Pool -->
             <section class="report-section" id="sec-short-dark">
-                <h2 class="report-section-title">9. Short Interest & Dark Pool</h2>
+                <h2 class="report-section-title" data-zh="9. 做空与暗池" data-en="9. Short Interest & Dark Pool">9. Short Interest & Dark Pool</h2>
                 <div id="short-dark-content"></div>
             </section>
 
             <!-- Section 10: Ownership & Insider Activity -->
             <section class="report-section" id="sec-ownership">
-                <h2 class="report-section-title">10. Ownership & Insider Activity</h2>
+                <h2 class="report-section-title" data-zh="10. 股权与内部交易" data-en="10. Ownership & Insider Activity">10. Ownership & Insider Activity</h2>
                 <div id="ownership-content"></div>
             </section>
 
             <!-- Section 11: BTC Correlation -->
             <section class="report-section" id="sec-btc-corr">
-                <h2 class="report-section-title">11. BTC Correlation (Mining Specific)</h2>
+                <h2 class="report-section-title" data-zh="11. BTC 相关性（矿业专项）" data-en="11. BTC Correlation (Mining Specific)">11. BTC Correlation (Mining Specific)</h2>
                 <div id="btc-corr-content"></div>
             </section>
 
             <!-- Section 12: Daily Commentary -->
             <section class="report-section" id="sec-commentary">
-                <h2 class="report-section-title">12. Daily Commentary (AI)</h2>
+                <h2 class="report-section-title" data-zh="12. 每日点评 (AI)" data-en="12. Daily Commentary (AI)">12. Daily Commentary (AI)</h2>
                 <div id="commentary-content"></div>
             </section>
         </main>
@@ -160,6 +161,8 @@
         </div>
     </div>
 
+    <script src="js/prefs.js"></script>
     <script src="js/report.js"></script>
+    <script>initPrefsToolbar("prefs-container");</script>
 </body>
 </html>
