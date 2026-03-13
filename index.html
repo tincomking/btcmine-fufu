@@ -49,6 +49,7 @@
         <!-- Navigation -->
         <nav class="nav">
             <button class="nav-tab active" data-section="overview">Overview</button>
+            <button class="nav-tab" data-section="market">Market Data</button>
             <button class="nav-tab" data-section="insider">Insider Trades</button>
             <button class="nav-tab" data-section="institutions">Institutions</button>
             <button class="nav-tab" data-section="short">Short Interest</button>
@@ -87,6 +88,42 @@
                 <div class="card">
                     <h3>Corporate Actions</h3>
                     <div id="actions-content" class="card-body">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Market Data (盘口) -->
+            <section id="sec-market" class="section">
+                <div class="grid-3">
+                    <div class="card">
+                        <h3>Level 1 Order Book</h3>
+                        <div id="market-orderbook" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Volume Analysis</h3>
+                        <div id="market-volume" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Price Range</h3>
+                        <div id="market-range" class="card-body">Loading...</div>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="card">
+                        <h3>Buy / Sell Pressure</h3>
+                        <div id="market-pressure" class="card-body">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <h3>Volume Profile</h3>
+                        <div id="market-profile" class="card-body">Loading...</div>
+                    </div>
+                </div>
+                <div class="card full">
+                    <h3>Intraday 5-Min Candles</h3>
+                    <div id="market-intraday" class="card-body">Loading...</div>
+                </div>
+                <div class="card full" style="margin-top:16px;">
+                    <h3>Peer Comparison</h3>
+                    <div id="market-peers" class="card-body">Loading...</div>
                 </div>
             </section>
 

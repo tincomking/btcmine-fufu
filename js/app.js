@@ -122,6 +122,7 @@ async function loadAllData() {
         DATA.indicators = { indicators: dashboard.indicators || {} };
         DATA.correlation = { correlations: dashboard.correlation?.data ? { [SYMBOL]: dashboard.correlation.data } : {} };
         DATA.alerts = { alerts: dashboard.alerts || [] };
+        DATA.market = dashboard.market || null;
         // Price
         DATA.quote = dashboard.price ? { [SYMBOL]: dashboard.price } : null;
         DATA.btc = dashboard.btc_price ? { price: dashboard.btc_price } : null;
@@ -145,6 +146,7 @@ function renderAll() {
     renderInsiderPreview();
     renderEventsPreview();
     renderActions();
+    renderMarketData();
     renderInsiderFull();
     renderInstitutionsFull();
     renderOwnershipFull();
@@ -464,6 +466,155 @@ function renderCorrelation() {
         <div class="stat-row"><span class="stat-label">Beta (30d)</span><span class="stat-value">${fufu.beta_30d != null ? Number(fufu.beta_30d).toFixed(3) : "--"}</span></div>
         <div class="stat-row"><span class="stat-label">Data Points</span><span class="stat-value">${fufu.data_points || "--"}</span></div>
     `;
+}
+
+// ─── Market Data (盘口) ────────────────────────────────
+function renderMarketData() {
+    const m = DATA.market;
+    renderMarketOrderbook(m);
+    renderMarketVolume(m);
+    renderMarketRange(m);
+    renderMarketPressure(m);
+    renderMarketProfile(m);
+    renderMarketIntraday(m);
+}
+
+function renderMarketOrderbook(m) {
+    const el = document.getElementById("market-orderbook");
+    if (!m) { el.innerHTML = '<div class="empty">No market data</div>'; return; }
+    el.innerHTML = `
+        <div class="orderbook-row">
+            <span class="orderbook-label">Best Bid</span>
+            <span class="orderbook-value orderbook-bid">$${Number(m.bid).toFixed(2)} <span style="font-size:12px;font-weight:400">(${m.bid_size} lot)</span></span>
+        </div>
+        <div class="orderbook-row">
+            <span class="orderbook-label">Best Ask</span>
+            <span class="orderbook-value orderbook-ask">$${Number(m.ask).toFixed(2)} <span style="font-size:12px;font-weight:400">(${m.ask_size} lot)</span></span>
+        </div>
+        <div class="orderbook-row">
+            <span class="orderbook-label">Spread</span>
+            <span class="orderbook-value orderbook-spread">$${m.spread} (${m.spread_pct}%)</span>
+        </div>
+        <div class="orderbook-row">
+            <span class="orderbook-label">VWAP</span>
+            <span class="orderbook-value">$${Number(m.vwap).toFixed(4)}</span>
+        </div>
+        <div class="orderbook-row">
+            <span class="orderbook-label">Last Price</span>
+            <span class="orderbook-value" style="color:${m.change_pct >= 0 ? 'var(--green)' : 'var(--red)'}">$${Number(m.price).toFixed(2)} (${m.change_pct > 0 ? '+' : ''}${m.change_pct}%)</span>
+        </div>
+    `;
+}
+
+function renderMarketVolume(m) {
+    const el = document.getElementById("market-volume");
+    if (!m) { el.innerHTML = '<div class="empty">No market data</div>'; return; }
+    const rvolClass = m.relative_volume >= 2 ? 'rvol-high' : m.relative_volume >= 0.8 ? 'rvol-normal' : 'rvol-low';
+    const rvolLabel = m.relative_volume >= 2 ? 'HIGH' : m.relative_volume >= 0.8 ? 'NORMAL' : 'LOW';
+    el.innerHTML = `
+        <div class="stat-row"><span class="stat-label">Today Volume</span><span class="stat-value">${fmtNum(m.volume)}</span></div>
+        <div class="stat-row"><span class="stat-label">Avg Volume</span><span class="stat-value">${fmtNum(m.avg_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label">10D Avg Volume</span><span class="stat-value">${fmtNum(m.avg_volume_10d)}</span></div>
+        <div class="stat-row"><span class="stat-label">Relative Volume</span><span class="stat-value"><span class="rvol-badge ${rvolClass}">${m.relative_volume}x ${rvolLabel}</span></span></div>
+        <div class="stat-row"><span class="stat-label">Market Cap</span><span class="stat-value">${fmtNum(m.market_cap)}</span></div>
+    `;
+}
+
+function renderMarketRange(m) {
+    const el = document.getElementById("market-range");
+    if (!m) { el.innerHTML = '<div class="empty">No market data</div>'; return; }
+    const dayRange = m.high - m.low;
+    const dayPos = dayRange > 0 ? ((m.price - m.low) / dayRange * 100).toFixed(0) : 50;
+    const w52Range = m.week52_high - m.week52_low;
+    const w52Pos = w52Range > 0 ? ((m.price - m.week52_low) / w52Range * 100).toFixed(0) : 50;
+    el.innerHTML = `
+        <div class="stat-row"><span class="stat-label">Open</span><span class="stat-value">$${Number(m.open).toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-label">Prev Close</span><span class="stat-value">$${Number(m.prev_close).toFixed(2)}</span></div>
+        <div style="margin:12px 0">
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">DAY RANGE</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                <span>$${Number(m.low).toFixed(2)}</span>
+                <div style="flex:1;height:6px;background:var(--bg-input);border-radius:3px;position:relative">
+                    <div style="position:absolute;left:${dayPos}%;top:-3px;width:12px;height:12px;background:var(--accent);border-radius:50%;transform:translateX(-50%)"></div>
+                </div>
+                <span>$${Number(m.high).toFixed(2)}</span>
+            </div>
+        </div>
+        <div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">52-WEEK RANGE</div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                <span style="color:var(--red)">$${Number(m.week52_low).toFixed(2)}</span>
+                <div style="flex:1;height:6px;background:var(--bg-input);border-radius:3px;position:relative">
+                    <div style="position:absolute;left:${w52Pos}%;top:-3px;width:12px;height:12px;background:var(--accent);border-radius:50%;transform:translateX(-50%)"></div>
+                </div>
+                <span style="color:var(--green)">$${Number(m.week52_high).toFixed(2)}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px">From 52W High: ${m.from_52h_pct}% | From 52W Low: +${m.from_52l_pct}%</div>
+        </div>
+    `;
+}
+
+function renderMarketPressure(m) {
+    const el = document.getElementById("market-pressure");
+    if (!m) { el.innerHTML = '<div class="empty">No market data</div>'; return; }
+    const sellPct = (100 - m.buy_pct).toFixed(1);
+    el.innerHTML = `
+        <div class="pressure-bar">
+            <div class="pressure-buy" style="width:${m.buy_pct}%">BUY ${m.buy_pct}%</div>
+            <div class="pressure-sell" style="width:${sellPct}%">SELL ${sellPct}%</div>
+        </div>
+        <div class="stat-row"><span class="stat-label">Buy Volume (est.)</span><span class="stat-value" style="color:var(--green)">${fmtNum(m.buy_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label">Sell Volume (est.)</span><span class="stat-value" style="color:var(--red)">${fmtNum(m.sell_volume)}</span></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Based on 5-min candle close vs open direction</div>
+    `;
+}
+
+function renderMarketProfile(m) {
+    const el = document.getElementById("market-profile");
+    if (!m || !m.volume_profile?.length) { el.innerHTML = '<div class="empty">No volume profile</div>'; return; }
+    const maxVol = Math.max(...m.volume_profile.map(b => b.volume));
+    let html = '<div class="vol-bar-container">';
+    for (const bin of m.volume_profile) {
+        const pct = maxVol > 0 ? (bin.volume / maxVol * 100).toFixed(0) : 0;
+        const isCurrentPrice = m.price >= bin.price_lo && m.price <= bin.price_hi;
+        html += `<div class="vol-bar-row">
+            <span class="vol-bar-label">$${bin.price_lo.toFixed(2)}-${bin.price_hi.toFixed(2)}</span>
+            <div class="vol-bar-track">
+                <div class="vol-bar-fill" style="width:${pct}%;${isCurrentPrice ? 'background:var(--accent)' : ''}"></div>
+            </div>
+            <span class="vol-bar-val">${fmtNum(bin.volume)}</span>
+        </div>`;
+    }
+    html += '</div>';
+    if (m.vwap) html += `<div style="margin-top:8px;font-size:12px;color:var(--accent)">VWAP: $${Number(m.vwap).toFixed(4)}</div>`;
+    el.innerHTML = html;
+}
+
+function renderMarketIntraday(m) {
+    const el = document.getElementById("market-intraday");
+    if (!m || !m.intraday?.length) { el.innerHTML = '<div class="empty">No intraday data</div>'; return; }
+    const candles = m.intraday;
+    const allPrices = candles.flatMap(c => [c.open, c.close]);
+    const minP = Math.min(...allPrices);
+    const maxP = Math.max(...allPrices);
+    const range = maxP - minP || 1;
+
+    let html = '<div style="overflow-x:auto">';
+    for (const c of candles) {
+        const isUp = c.close >= c.open;
+        const lo = Math.min(c.open, c.close);
+        const hi = Math.max(c.open, c.close);
+        const left = ((lo - minP) / range * 100).toFixed(1);
+        const width = Math.max(((hi - lo) / range * 100), 0.5).toFixed(1);
+        html += `<div class="candle-row">
+            <span class="candle-time">${c.time}</span>
+            <span class="candle-price" style="color:${isUp ? 'var(--green)' : 'var(--red)'}">$${c.close.toFixed(2)}</span>
+            <div class="candle-bar"><div class="candle-bar-inner ${isUp ? 'candle-up' : 'candle-down'}" style="left:${left}%;width:${width}%"></div></div>
+            <span class="candle-vol">${fmtNum(c.volume)}</span>
+        </div>`;
+    }
+    html += '</div>';
+    el.innerHTML = html;
 }
 
 // ─── Utilities ──────────────────────────────────────────

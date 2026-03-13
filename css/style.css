@@ -391,6 +391,119 @@ body {
     margin-top: 4px;
 }
 
+/* === Market Data (盘口) === */
+.orderbook-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+}
+.orderbook-row:last-child { border-bottom: none; }
+.orderbook-label { font-size: 13px; color: var(--text-dim); }
+.orderbook-value { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.orderbook-bid { color: var(--green); }
+.orderbook-ask { color: var(--red); }
+.orderbook-spread { color: var(--accent); }
+
+.pressure-bar {
+    display: flex;
+    height: 28px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 12px 0;
+}
+.pressure-buy {
+    background: var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #000;
+}
+.pressure-sell {
+    background: var(--red);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.vol-bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.vol-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+}
+.vol-bar-label {
+    width: 100px;
+    text-align: right;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+}
+.vol-bar-track {
+    flex: 1;
+    height: 16px;
+    background: var(--bg-input);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.vol-bar-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 3px;
+    transition: width .3s;
+}
+.vol-bar-val {
+    width: 60px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    font-size: 11px;
+}
+
+.candle-row {
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    border-bottom: 1px solid rgba(30,41,59,.5);
+}
+.candle-row:nth-child(even) { background: rgba(26,35,50,.3); }
+.candle-time { width: 60px; color: var(--text-muted); flex-shrink: 0; }
+.candle-price { width: 70px; text-align: right; flex-shrink: 0; }
+.candle-vol { width: 80px; text-align: right; color: var(--text-dim); flex-shrink: 0; }
+.candle-bar { flex: 1; height: 14px; margin: 0 8px; position: relative; }
+.candle-bar-inner {
+    position: absolute;
+    top: 2px;
+    height: 10px;
+    border-radius: 2px;
+    min-width: 1px;
+}
+.candle-up { background: var(--green); }
+.candle-down { background: var(--red); }
+
+.rvol-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 700;
+}
+.rvol-high { background: rgba(16,185,129,.15); color: var(--green); }
+.rvol-normal { background: rgba(100,116,139,.15); color: var(--text-dim); }
+.rvol-low { background: rgba(239,68,68,.15); color: var(--red); }
+
 /* === Footer === */
 .footer {
     background: var(--bg-header);
