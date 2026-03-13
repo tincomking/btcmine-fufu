@@ -71,8 +71,7 @@ async function handleAuth() {
 function showReport() {
     document.getElementById("auth-gate").classList.add("hidden");
     document.getElementById("report-page").classList.remove("hidden");
-    loadHistory();
-    loadLatestReport();
+    loadLatestReport(); // history is populated after dashboard loads
 }
 
 // ─── API ────────────────────────────────────────────────
@@ -87,40 +86,102 @@ async function fetchAPI(path) {
     }
 }
 
+// ─── Dashboard → Report Transform ──────────────────────
+// All data comes from the aggregated /dashboard endpoint (Cloudflare WAF blocks individual endpoints)
+let DASHBOARD = null;
+
+function transformDashboard(d) {
+    const market = d.market || {};
+    const wb = d.webull || {};
+    const rpt = d.latest_report || {};
+    const corr = d.correlation || {};
+    const corrData = corr.data || corr;
+
+    // Build peers array from market_peers dict
+    const peersArr = [];
+    if (d.market_peers && typeof d.market_peers === "object") {
+        for (const [sym, info] of Object.entries(d.market_peers)) {
+            peersArr.push({ symbol: sym, ...info });
+        }
+    }
+
+    return {
+        report_date: rpt.report_date || new Date().toISOString().slice(0, 10),
+        generated_at: rpt.generated_at || "",
+        report: {
+            // Price / Level 1 — merge yfinance market + webull quote
+            price: market,
+            level1: market,
+            // Webull data (capital flow, after hours, quote)
+            webull: wb,
+            // BTC context
+            btc_context: {
+                btc_price: d.btc_price,
+                corr_7d: corrData.corr_7d ?? corrData.latest_corr_7d,
+                corr_30d: corrData.corr_30d,
+                corr_90d: corrData.corr_90d,
+                beta_30d: corrData.beta_30d,
+            },
+            // Technicals
+            technicals: d.indicators || {},
+            // Analyst
+            analyst: d.analyst || {},
+            // Peer comparison
+            peer_comparison: { peers: peersArr },
+            // Short / Dark
+            short_interest: d.short_interest || [],
+            dark_pool: d.darkpool || [],
+            // Ownership / Insider
+            insider_trades_30d: d.insider || [],
+            ownership_changes_90d: d.ownership || [],
+            sec_events_30d: d.events || [],
+            // Alerts
+            alerts_today: d.alerts || [],
+            // Commentary & Score (from daily report)
+            commentary: rpt.commentary || {},
+            score: rpt.score,
+            score_details: rpt.score_details,
+        },
+    };
+}
+
 // ─── Report Loading ─────────────────────────────────────
 async function loadLatestReport() {
     showLoading();
-    const data = await fetchAPI(`/api/equity/${SYMBOL_LC}/report/latest`);
+    const data = await fetchAPI(`/api/equity/${SYMBOL}/dashboard`);
     if (data) {
-        REPORT = data;
+        DASHBOARD = data;
+        REPORT = transformDashboard(data);
         renderReport();
     } else {
-        showError("Failed to load latest report. API may be unavailable.");
+        showError("Failed to load report data. API may be unavailable.");
     }
 }
 
 async function loadReportByDate(date) {
-    showLoading();
-    const data = await fetchAPI(`/api/equity/${SYMBOL_LC}/report/${date}`);
-    if (data) {
-        REPORT = data;
-        renderReport();
-    } else {
-        showError(`No report available for ${date}`);
-    }
+    // Date selection not yet supported through Cloudflare — show info
+    if (!DASHBOARD) return;
+    showError(`Historical report for ${date} — feature coming soon. Showing latest report.`);
+    setTimeout(() => { if (REPORT) renderReport(); showContent(); }, 1500);
 }
 
 async function loadHistory() {
-    const data = await fetchAPI(`/api/equity/${SYMBOL_LC}/report/history`);
+    // Load from dashboard's report_history field
+    if (!DASHBOARD && !REPORT) {
+        // Dashboard not loaded yet — will be called after loadLatestReport via renderReport
+        return;
+    }
+    populateHistory();
+}
+
+function populateHistory() {
     const sel = document.getElementById("history-select");
-    if (!data || !Array.isArray(data)) return;
-    // data is expected to be an array of date strings or objects with date field
-    const dates = data.map(d => typeof d === "string" ? d : d.date || d.report_date).filter(Boolean);
+    const hist = DASHBOARD?.report_history || [];
     sel.innerHTML = '<option value="">Report History</option>';
-    for (const dt of dates) {
+    for (const h of hist) {
         const opt = document.createElement("option");
-        opt.value = dt;
-        opt.textContent = dt;
+        opt.value = h.report_date;
+        opt.textContent = `${h.report_date} (${h.score != null ? 'Score: ' + h.score : ''})`;
         sel.appendChild(opt);
     }
 }
@@ -257,6 +318,9 @@ function renderReport() {
     renderOwnership(r);
     renderBTCCorrelation(r);
     renderCommentary(r);
+
+    // Populate history dropdown after dashboard is loaded
+    populateHistory();
 
     showContent();
 }
@@ -675,7 +739,7 @@ function renderAnalyst(r) {
     }
 
     // Price target
-    const target = analyst.price_target || analyst.target || {};
+    const target = analyst.price_targets || analyst.price_target || analyst.target || {};
     if (target && Object.keys(target).length) {
         const current = target.current || r.price?.close || r.price?.price || r.level1?.price;
         const mean = target.mean || target.average;
@@ -713,8 +777,8 @@ function renderAnalyst(r) {
                     <td>${c.date || c.action_date || '--'}</td>
                     <td>${esc(c.firm || c.analyst || '')}</td>
                     <td><span class="badge ${(c.action||'').toLowerCase().includes('upgrade') ? 'badge-buy' : (c.action||'').toLowerCase().includes('downgrade') ? 'badge-sell' : 'badge-medium'}">${esc(c.action || '')}</span></td>
-                    <td>${esc(c.from_rating || c.from || '')}</td>
-                    <td>${esc(c.to_rating || c.to || '')}</td>
+                    <td>${esc(c.from_rating || c.from_grade || c.from || '')}</td>
+                    <td>${esc(c.to_rating || c.to_grade || c.to || '')}</td>
                     <td class="num">${c.target_price != null ? fmtPrice(c.target_price) : '--'}</td>
                 </tr>`).join("")}</tbody>
             </table>
