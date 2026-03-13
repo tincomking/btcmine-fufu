@@ -518,6 +518,7 @@ function renderMarketData() {
     renderMarketPeers(m, DATA.marketPeers);
     renderAfterHours();
     renderMarketCapitalFlow();
+    renderMarketDepth();
 }
 
 function renderCapitalFlow() {
@@ -661,6 +662,100 @@ function renderMarketOrderbook(m) {
             <span class="orderbook-value" style="color:${m.change_pct >= 0 ? 'var(--green)' : 'var(--red)'}">$${Number(m.price).toFixed(2)} (${m.change_pct > 0 ? '+' : ''}${m.change_pct}%)</span>
         </div>
     `;
+}
+
+function renderMarketDepth() {
+    const el = document.getElementById("market-depth");
+    if (!el) return;
+    const wb = DATA.webull;
+    const depth = wb && wb.depth;
+    if (!depth || (!depth.bids && !depth.asks) || ((!depth.bids || !depth.bids.length) && (!depth.asks || !depth.asks.length))) {
+        el.innerHTML = '<div class="empty"><span class="lang-zh">L2 深度数据仅在美股盘中可用（美东 9:30-16:00）</span><span class="lang-en" style="display:none">L2 depth data available during US market hours only (9:30-16:00 ET)</span></div>';
+        // re-apply lang
+        const lang = (typeof loadPrefs === "function") ? loadPrefs().lang : "zh";
+        if (lang === "en") {
+            el.querySelectorAll(".lang-zh").forEach(e => e.style.display = "none");
+            el.querySelectorAll(".lang-en").forEach(e => e.style.display = "");
+        }
+        return;
+    }
+    const bids = (depth.bids || []).slice(0, 10);
+    const asks = (depth.asks || []).slice(0, 10);
+    const maxVol = Math.max(
+        ...bids.map(b => b.volume || 0),
+        ...asks.map(a => a.volume || 0),
+        1
+    );
+
+    // Build a side-by-side depth view
+    let html = '<div class="depth-container">';
+
+    // Header
+    html += '<div class="depth-header">';
+    html += '<span class="depth-h-left">BID (Buy)</span>';
+    html += '<span class="depth-h-center">Price</span>';
+    html += '<span class="depth-h-right">ASK (Sell)</span>';
+    html += '</div>';
+
+    const rows = Math.max(bids.length, asks.length);
+    for (let i = 0; i < rows; i++) {
+        const bid = bids[i];
+        const ask = asks[i];
+        const bidPct = bid ? (bid.volume / maxVol * 100) : 0;
+        const askPct = ask ? (ask.volume / maxVol * 100) : 0;
+
+        html += '<div class="depth-row">';
+
+        // Bid side (right-aligned bar)
+        html += '<div class="depth-bid-cell">';
+        if (bid) {
+            html += `<span class="depth-vol">${fmtNum(bid.volume)}</span>`;
+            html += `<div class="depth-bar-wrap depth-bar-bid-wrap"><div class="depth-bar depth-bar-bid" style="width:${bidPct}%"></div></div>`;
+        }
+        html += '</div>';
+
+        // Price column
+        html += '<div class="depth-price-cell">';
+        if (bid) html += `<span class="depth-price-bid">$${Number(bid.price).toFixed(2)}</span>`;
+        if (bid && ask) html += ' <span class="depth-price-sep">|</span> ';
+        else if (!bid && ask) html += '<span class="depth-price-empty"></span>';
+        if (ask) html += `<span class="depth-price-ask">$${Number(ask.price).toFixed(2)}</span>`;
+        html += '</div>';
+
+        // Ask side (left-aligned bar)
+        html += '<div class="depth-ask-cell">';
+        if (ask) {
+            html += `<div class="depth-bar-wrap depth-bar-ask-wrap"><div class="depth-bar depth-bar-ask" style="width:${askPct}%"></div></div>`;
+            html += `<span class="depth-vol">${fmtNum(ask.volume)}</span>`;
+        }
+        html += '</div>';
+
+        html += '</div>';
+    }
+
+    // Summary
+    const totalBidVol = bids.reduce((s, b) => s + (b.volume || 0), 0);
+    const totalAskVol = asks.reduce((s, a) => s + (a.volume || 0), 0);
+    const totalVol = totalBidVol + totalAskVol || 1;
+    const bidPctTotal = (totalBidVol / totalVol * 100).toFixed(1);
+    const askPctTotal = (totalAskVol / totalVol * 100).toFixed(1);
+    const imbalance = totalBidVol > totalAskVol ? "BUY" : totalAskVol > totalBidVol ? "SELL" : "EVEN";
+    const imbClass = imbalance === "BUY" ? "depth-imb-buy" : imbalance === "SELL" ? "depth-imb-sell" : "depth-imb-even";
+
+    html += '<div class="depth-summary">';
+    html += `<div class="depth-summary-bar">`;
+    html += `<div class="depth-sum-bid" style="width:${bidPctTotal}%">${bidPctTotal}%</div>`;
+    html += `<div class="depth-sum-ask" style="width:${askPctTotal}%">${askPctTotal}%</div>`;
+    html += `</div>`;
+    html += `<div class="depth-summary-text">`;
+    html += `<span>Bid Vol: ${fmtNum(totalBidVol)}</span>`;
+    html += `<span class="${imbClass}">Imbalance: ${imbalance}</span>`;
+    html += `<span>Ask Vol: ${fmtNum(totalAskVol)}</span>`;
+    html += `</div>`;
+    html += '</div>';
+
+    html += '</div>';
+    el.innerHTML = html;
 }
 
 function renderMarketVolume(m) {

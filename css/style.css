@@ -640,6 +640,119 @@ body {
 .rvol-normal { background: rgba(100,116,139,.15); color: var(--text-dim); }
 .rvol-low { background: rgba(239,68,68,.15); color: var(--red); }
 
+/* === L2 Depth === */
+.depth-container { font-size: 13px; font-variant-numeric: tabular-nums; }
+.depth-header {
+    display: flex;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--text-muted);
+}
+.depth-h-left { flex: 1; text-align: right; color: var(--green); }
+.depth-h-center { width: 160px; text-align: center; flex-shrink: 0; }
+.depth-h-right { flex: 1; text-align: left; color: var(--red); }
+
+.depth-row {
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(30,41,59,.3);
+}
+.depth-row:hover { background: var(--bg-card-hover); }
+
+.depth-bid-cell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+.depth-ask-cell {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+.depth-price-cell {
+    width: 160px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+.depth-price-bid { color: var(--green); font-weight: 600; }
+.depth-price-ask { color: var(--red); font-weight: 600; }
+.depth-price-sep { color: var(--text-muted); font-size: 10px; }
+.depth-vol { color: var(--text-dim); font-size: 12px; min-width: 50px; }
+.depth-bid-cell .depth-vol { text-align: right; }
+.depth-ask-cell .depth-vol { text-align: left; }
+
+.depth-bar-wrap { height: 18px; position: relative; }
+.depth-bar-bid-wrap { width: 200px; flex-shrink: 0; }
+.depth-bar-ask-wrap { width: 200px; flex-shrink: 0; }
+.depth-bar {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 2px;
+    transition: width .3s;
+}
+.depth-bar-bid {
+    right: 0;
+    background: rgba(16,185,129,.25);
+    border-right: 2px solid var(--green);
+}
+.depth-bar-ask {
+    left: 0;
+    background: rgba(239,68,68,.25);
+    border-left: 2px solid var(--red);
+}
+
+.depth-summary { margin-top: 12px; }
+.depth-summary-bar {
+    display: flex;
+    height: 24px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.depth-sum-bid {
+    background: var(--green);
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.depth-sum-ask {
+    background: var(--red);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.depth-summary-text {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+.depth-imb-buy { color: var(--green); font-weight: 700; }
+.depth-imb-sell { color: var(--red); font-weight: 700; }
+.depth-imb-even { color: var(--text-muted); font-weight: 700; }
+
+@media (max-width: 768px) {
+    .depth-bar-bid-wrap, .depth-bar-ask-wrap { width: 100px; }
+    .depth-price-cell { width: 120px; }
+}
+
 /* === Footer === */
 .footer {
     background: var(--bg-header);
