@@ -108,17 +108,17 @@ async function fetchAPI(path) {
 
 async function loadAllData() {
     const endpoints = {
-        entity:       `/api/stocks/${SYMBOL}/entity`,
-        insider:      `/api/stocks/${SYMBOL}/insider?limit=50`,
-        institutions: `/api/stocks/${SYMBOL}/institutions`,
-        events:       `/api/stocks/${SYMBOL}/events?limit=30`,
-        ownership:    `/api/stocks/${SYMBOL}/ownership?limit=20`,
-        shortInterest:`/api/stocks/${SYMBOL}/short-interest?limit=10`,
-        darkpool:     `/api/stocks/${SYMBOL}/darkpool?limit=10`,
-        actions:      `/api/stocks/${SYMBOL}/actions?limit=20`,
-        indicators:   `/api/stocks/${SYMBOL}/indicators`,
-        correlation:  `/api/stocks/correlation`,
-        alerts:       `/api/stocks/alerts/recent?symbol=${SYMBOL}`,
+        entity:       `/api/equity/${SYMBOL}/entity`,
+        insider:      `/api/equity/${SYMBOL}/insider?limit=50`,
+        institutions: `/api/equity/${SYMBOL}/institutions`,
+        events:       `/api/equity/${SYMBOL}/events?limit=30`,
+        ownership:    `/api/equity/${SYMBOL}/ownership?limit=20`,
+        shortInterest:`/api/equity/${SYMBOL}/short-interest?limit=10`,
+        darkpool:     `/api/equity/${SYMBOL}/darkpool?limit=10`,
+        actions:      `/api/equity/${SYMBOL}/actions?limit=20`,
+        indicators:   `/api/equity/${SYMBOL}/indicators`,
+        correlation:  `/api/equity/correlation`,
+        alerts:       `/api/equity/alerts/recent?symbol=${SYMBOL}`,
         quote:        `/api/market/latest?symbols=${SYMBOL}`,
         btc:          `/api/btc/price/latest`,
     };
