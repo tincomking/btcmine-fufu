@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Report | FUFU Intelligence</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⛏️</text></svg>">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Password Gate -->
+    <div id="auth-gate" class="auth-gate">
+        <div class="auth-card">
+            <div class="auth-logo">⛏️</div>
+            <h1>FUFU Intelligence</h1>
+            <p class="auth-subtitle">BitFuFu Inc — Daily Report</p>
+            <form id="auth-form" onsubmit="return false;">
+                <input type="password" id="auth-password" placeholder="Enter access code" autocomplete="off" autofocus>
+                <button type="submit" id="auth-submit">Access</button>
+                <p id="auth-error" class="auth-error"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Report Page (hidden until auth) -->
+    <div id="report-page" class="report-page hidden">
+        <!-- Header -->
+        <header class="header no-print">
+            <div class="header-left">
+                <a href="index.html" class="back-link" title="Back to Dashboard">← Dashboard</a>
+                <span class="header-logo">⛏️</span>
+                <h1 class="header-title">FUFU Daily Report</h1>
+                <span class="header-badge">CONFIDENTIAL</span>
+            </div>
+            <div class="header-right">
+                <div class="report-controls">
+                    <select id="history-select" class="report-select" title="Report History">
+                        <option value="">Select date...</option>
+                    </select>
+                    <input type="date" id="date-picker" class="report-select" title="Pick a date">
+                    <button id="print-btn" class="icon-btn" title="Export PDF">🖨</button>
+                </div>
+                <button id="logout-btn" class="icon-btn" title="Logout">⏻</button>
+            </div>
+        </header>
+
+        <!-- Print Header -->
+        <div class="print-header">
+            <div class="print-header-left">
+                <span style="font-size:24px">⛏️</span>
+                <div>
+                    <div class="print-title">FUFU Intelligence — Daily Report</div>
+                    <div class="print-subtitle" id="print-date">--</div>
+                </div>
+            </div>
+            <div class="print-header-right">
+                <span class="header-badge">CONFIDENTIAL</span>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="report-loading" class="report-loading">
+            <div class="loading-spinner"></div>
+            <p>Loading report data...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="report-error" class="report-error hidden">
+            <p id="report-error-msg">Failed to load report</p>
+            <button onclick="loadLatestReport()" class="retry-btn">Retry</button>
+        </div>
+
+        <!-- Report Content -->
+        <main id="report-content" class="report-main hidden">
+            <!-- Report Meta -->
+            <div class="report-meta" id="report-meta"></div>
+
+            <!-- Section 1: Executive Snapshot -->
+            <section class="report-section" id="sec-snapshot">
+                <h2 class="report-section-title">1. Executive Snapshot</h2>
+                <div id="snapshot-content"></div>
+            </section>
+
+            <!-- Section 2: Price Action & Trading -->
+            <section class="report-section" id="sec-price-action">
+                <h2 class="report-section-title">2. Price Action & Trading</h2>
+                <div id="price-action-content"></div>
+            </section>
+
+            <!-- Section 3: Capital Flow -->
+            <section class="report-section" id="sec-capital-flow">
+                <h2 class="report-section-title">3. Capital Flow (Webull)</h2>
+                <div id="capital-flow-content"></div>
+            </section>
+
+            <!-- Section 4: After Hours -->
+            <section class="report-section" id="sec-after-hours">
+                <h2 class="report-section-title">4. After Hours</h2>
+                <div id="after-hours-content"></div>
+            </section>
+
+            <!-- Section 5: Technical Signals -->
+            <section class="report-section" id="sec-tech-signals">
+                <h2 class="report-section-title">5. Technical Signals</h2>
+                <div id="tech-signals-content"></div>
+            </section>
+
+            <!-- Section 6: Analyst Coverage -->
+            <section class="report-section" id="sec-analyst">
+                <h2 class="report-section-title">6. Analyst Coverage</h2>
+                <div id="analyst-content"></div>
+            </section>
+
+            <!-- Section 7: Peer Comparison -->
+            <section class="report-section" id="sec-peers">
+                <h2 class="report-section-title">7. Peer Comparison</h2>
+                <div id="peers-content"></div>
+            </section>
+
+            <!-- Section 8: Valuation & Fundamentals -->
+            <section class="report-section" id="sec-valuation">
+                <h2 class="report-section-title">8. Valuation & Fundamentals</h2>
+                <div id="valuation-content"></div>
+            </section>
+
+            <!-- Section 9: Short Interest & Dark Pool -->
+            <section class="report-section" id="sec-short-dark">
+                <h2 class="report-section-title">9. Short Interest & Dark Pool</h2>
+                <div id="short-dark-content"></div>
+            </section>
+
+            <!-- Section 10: Ownership & Insider Activity -->
+            <section class="report-section" id="sec-ownership">
+                <h2 class="report-section-title">10. Ownership & Insider Activity</h2>
+                <div id="ownership-content"></div>
+            </section>
+
+            <!-- Section 11: BTC Correlation -->
+            <section class="report-section" id="sec-btc-corr">
+                <h2 class="report-section-title">11. BTC Correlation (Mining Specific)</h2>
+                <div id="btc-corr-content"></div>
+            </section>
+
+            <!-- Section 12: Daily Commentary -->
+            <section class="report-section" id="sec-commentary">
+                <h2 class="report-section-title">12. Daily Commentary (AI)</h2>
+                <div id="commentary-content"></div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer no-print">
+            <span>FUFU Intelligence — Confidential</span>
+            <span id="report-generated">Generated: --</span>
+        </footer>
+
+        <!-- Print Footer -->
+        <div class="print-footer">
+            FUFU Intelligence — Confidential
+        </div>
+    </div>
+
+    <script src="js/report.js"></script>
+</body>
+</html>
