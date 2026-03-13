@@ -188,13 +188,13 @@ function renderEntity() {
 
     el.innerHTML = `
         <div class="stat-row"><span class="stat-label">Name</span><span class="stat-value">${entity.name || "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Sector</span><span class="stat-value">${entity.sector || "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Industry</span><span class="stat-value">${entity.industry || "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Country</span><span class="stat-value">${entity.country || "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Exchange</span><span class="stat-value">${entity.exchange || "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Market Cap</span><span class="stat-value">${entity.market_cap ? "$" + fmtNum(entity.market_cap) : "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">CUSIP</span><span class="stat-value">${entity.cusip || "N/A"}</span></div>
-        <div class="stat-row"><span class="stat-label">ISIN</span><span class="stat-value">${entity.isin || "N/A"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="公司所属行业大类（FUFU 归类为 Financial Services）">Sector</span><span class="stat-value">${entity.sector || "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="细分行业分类（FUFU = Capital Markets，提供算力服务和云算力）">Industry</span><span class="stat-value">${entity.industry || "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="公司注册地 / 总部所在国（FUFU 在开曼群岛注册，运营总部位于新加坡）">Country</span><span class="stat-value">${entity.country || "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="上市交易所：NCM = Nasdaq Capital Market（纳斯达克资本市场层，适合中小型公司）">Exchange</span><span class="stat-value">${entity.exchange || "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="市场总估值 = 股价 × 总流通股数。反映市场对公司当前的综合定价">Market Cap</span><span class="stat-value">${entity.market_cap ? "$" + fmtNum(entity.market_cap) : "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="美国证券唯一识别码。G1152A104 中 G 开头表示开曼群岛注册的外国私人发行人（FPI）">CUSIP</span><span class="stat-value">${entity.cusip || "N/A"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="国际证券识别码（ISIN），全球通用的证券唯一标识">ISIN</span><span class="stat-value">${entity.isin || "N/A"}</span></div>
     `;
 }
 
@@ -206,13 +206,13 @@ function renderShortSummary() {
 
     const latest = items[0];
     el.innerHTML = `
-        <div class="stat-row"><span class="stat-label">Settlement Date</span><span class="stat-value">${latest.settlement_date}</span></div>
-        <div class="stat-row"><span class="stat-label">Short Volume</span><span class="stat-value">${fmtNum(latest.short_volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">Short % Float</span><span class="stat-value" style="color:${latest.short_pct_float > 20 ? 'var(--red)' : 'var(--text)'}">${Number(latest.short_pct_float).toFixed(2)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Days to Cover</span><span class="stat-value">${Number(latest.days_to_cover).toFixed(1)}</span></div>
-        <div class="stat-row"><span class="stat-label">Avg Daily Volume</span><span class="stat-value">${fmtNum(latest.avg_daily_volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">Change</span><span class="stat-value" style="color:${latest.short_change_pct > 0 ? 'var(--red)' : 'var(--green)'}">${latest.short_change_pct > 0 ? "+" : ""}${Number(latest.short_change_pct).toFixed(2)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Source</span><span class="stat-value" style="text-transform:uppercase;font-size:11px;color:var(--text-muted)">${latest.source}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="做空数据结算日期（FINRA 每两周公布一次双周期数据）">Settlement Date</span><span class="stat-value">${latest.settlement_date}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="当前市场持有的做空股数。数值越高说明空头力量越强，挤仓反弹潜力也越大">Short Volume</span><span class="stat-value">${fmtNum(latest.short_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="做空量占自由流通股的比例。>20% 为高度做空区域，挤仓（Short Squeeze）风险显著增大；<5% 偏低">Short % Float</span><span class="stat-value" style="color:${latest.short_pct_float > 20 ? 'var(--red)' : 'var(--text)'}">${Number(latest.short_pct_float).toFixed(2)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="Days to Cover：以当前日均成交量计算，全部空头完全回补所需的交易日数。>5 天为警示信号">Days to Cover</span><span class="stat-value">${Number(latest.days_to_cover).toFixed(1)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="历史平均日成交量，用于计算 Days to Cover（回补天数）">Avg Daily Volume</span><span class="stat-value">${fmtNum(latest.avg_daily_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="与上一结算期相比的做空量变化。正值（红色）= 做空增加（利空信号）；负值（绿色）= 做空减少（利多信号）">Change</span><span class="stat-value" style="color:${latest.short_change_pct > 0 ? 'var(--red)' : 'var(--green)'}">${latest.short_change_pct > 0 ? "+" : ""}${Number(latest.short_change_pct).toFixed(2)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="数据来源（FINRA ATS 报告 / NASDAQ 官方做空数据）">Source</span><span class="stat-value" style="text-transform:uppercase;font-size:11px;color:var(--text-muted)">${latest.source}</span></div>
     `;
 }
 
@@ -224,11 +224,11 @@ function renderDarkpool() {
 
     const latest = items[0];
     el.innerHTML = `
-        <div class="stat-row"><span class="stat-label">Week Of</span><span class="stat-value">${latest.week_of}</span></div>
-        <div class="stat-row"><span class="stat-label">ATS Volume</span><span class="stat-value">${fmtNum(latest.ats_volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">Total Volume</span><span class="stat-value">${fmtNum(latest.total_volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">Dark Pool %</span><span class="stat-value" style="color:var(--purple)">${Number(latest.dark_pct).toFixed(1)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Source</span><span class="stat-value" style="text-transform:uppercase;font-size:11px;color:var(--text-muted)">${latest.source}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="该暗池数据的统计周（FINRA ATS 数据每周发布，通常延迟约 2 周）">Week Of</span><span class="stat-value">${latest.week_of}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="在 ATS（另类交易系统 / 暗池）中完成的成交股数，不在公开交易所显示">ATS Volume</span><span class="stat-value">${fmtNum(latest.ats_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="当周全市场总成交量（公开交易所 + 暗池 ATS 合计）">Total Volume</span><span class="stat-value">${fmtNum(latest.total_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="暗池成交量占总成交量的比例。>40% 说明大量机构正在场外低调建仓或减仓，后续可能有方向性突破">Dark Pool %</span><span class="stat-value" style="color:var(--purple)">${Number(latest.dark_pct).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="数据来源（FINRA ATS Transparency Data）">Source</span><span class="stat-value" style="text-transform:uppercase;font-size:11px;color:var(--text-muted)">${latest.source}</span></div>
     `;
 }
 
@@ -252,8 +252,13 @@ function renderInsiderFull() {
 function renderInsiderTable(trades) {
     return `<div style="overflow-x:auto"><table class="data-table">
         <thead><tr>
-            <th>Date</th><th>Insider</th><th>Title</th><th>Type</th>
-            <th class="num">Shares</th><th class="num">Price</th><th class="num">Value</th>
+            <th data-tip="交易发生日期（SEC Form 4 规定必须在交易后 2 个工作日内提交）">Date</th>
+            <th data-tip="内部人姓名（董事、高管、或持股 10% 以上大股东）">Insider</th>
+            <th data-tip="在公司的职务（CEO / CFO / Director / VP 等）">Title</th>
+            <th data-tip="交易类型：P=公开市场买入（强烈看涨信号）S=公开卖出 A=股权激励授予 M=期权行权 G=赠予 F=税款代扣股">Type</th>
+            <th class="num" data-tip="此次交易涉及的股数">Shares</th>
+            <th class="num" data-tip="每股交易价格（美元）">Price</th>
+            <th class="num" data-tip="此次交易总价值 = 股数 × 每股价格（美元）">Value</th>
         </tr></thead>
         <tbody>${trades.map(t => `<tr>
             <td>${t.transaction_date || t.filing_date || "--"}</td>
@@ -285,8 +290,11 @@ function renderInstitutionsFull() {
 
     el.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
         <thead><tr>
-            <th>Report Date</th><th>Institution</th>
-            <th class="num">Shares</th><th class="num">Value (USD)</th><th class="num">Change</th>
+            <th data-tip="SEC 13F 季度申报日期（季度结束后 45 天内必须提交）">Report Date</th>
+            <th data-tip="机构投资者名称（管理资产 >$1 亿须申报 13F）">Institution</th>
+            <th class="num" data-tip="持有股数（截至报告期末）">Shares</th>
+            <th class="num" data-tip="持仓市值（美元），基于报告期末股价估算">Value (USD)</th>
+            <th class="num" data-tip="较上季度持股变化：绿色正值 = 增持；红色负值 = 减持">Change</th>
         </tr></thead>
         <tbody>${holdings.map(h => `<tr>
             <td>${h.report_date}</td>
@@ -306,8 +314,12 @@ function renderOwnershipFull() {
 
     el.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
         <thead><tr>
-            <th>Filing Date</th><th>Filer</th><th>Form</th>
-            <th class="num">Shares</th><th class="num">Ownership %</th><th>Type</th>
+            <th data-tip="大股东变动申报日期（持股首次达 5% 后，须在 10 日内提交）">Filing Date</th>
+            <th data-tip="申报人姓名（个人或机构）">Filer</th>
+            <th data-tip="SC 13G = 被动持股（无控制意图）；SC 13D = 主动/激进持股（可能推动公司治理变革）">Form</th>
+            <th class="num" data-tip="申报时持有的股数">Shares</th>
+            <th class="num" data-tip="持股比例（占公司总流通股数）">Ownership %</th>
+            <th data-tip="ACTIVIST = 主动型投资（13D 申报，潜在激进行动）；PASSIVE = 被动型持股（13G 申报）">Type</th>
         </tr></thead>
         <tbody>${items.map(o => `<tr>
             <td>${o.filing_date}</td>
@@ -328,8 +340,12 @@ function renderShortFull() {
 
     el.innerHTML = `<table class="data-table">
         <thead><tr>
-            <th>Date</th><th class="num">Short Vol</th><th class="num">% Float</th>
-            <th class="num">DTC</th><th class="num">Change</th><th>Src</th>
+            <th data-tip="FINRA 做空数据的结算日期（双周发布）">Date</th>
+            <th class="num" data-tip="当期做空总股数（空头持仓合计）">Short Vol</th>
+            <th class="num" data-tip="做空量占自由流通股的比例。>20% = 高度做空，挤仓风险大">% Float</th>
+            <th class="num" data-tip="Days to Cover：回补天数 = 做空量 / 日均成交量。数值越大，潜在挤仓力度越强">DTC</th>
+            <th class="num" data-tip="较上期的做空量变化百分比。正值（红）= 做空增加；负值（绿）= 做空减少">Change</th>
+            <th data-tip="数据来源">Src</th>
         </tr></thead>
         <tbody>${items.map(s => `<tr>
             <td>${s.settlement_date}</td>
@@ -350,8 +366,11 @@ function renderDarkpoolFull() {
 
     el.innerHTML = `<table class="data-table">
         <thead><tr>
-            <th>Week</th><th class="num">ATS Vol</th><th class="num">Total Vol</th>
-            <th class="num">Dark %</th><th>Src</th>
+            <th data-tip="暗池数据统计周（FINRA ATS 数据，通常延迟约 2 周发布）">Week</th>
+            <th class="num" data-tip="ATS（另类交易系统 / 暗池）成交量，不在公开交易所显示">ATS Vol</th>
+            <th class="num" data-tip="含暗池的全市场总成交量（公开交易所 + ATS 合计）">Total Vol</th>
+            <th class="num" data-tip="暗池占总成交量比例。FUFU 近期约 42%，说明机构主要在场外低调成交，后续可能有方向性突破">Dark %</th>
+            <th data-tip="数据来源">Src</th>
         </tr></thead>
         <tbody>${items.map(d => `<tr>
             <td>${d.week_of}</td>
@@ -383,7 +402,10 @@ function renderEventsFull() {
 function renderEventsTable(events) {
     return `<div style="overflow-x:auto"><table class="data-table">
         <thead><tr>
-            <th>Date</th><th>Item</th><th>Description</th><th>Severity</th>
+            <th data-tip="SEC 申报文件提交日期（FUFU 作为外国私人发行人提交 6-K；美国本土公司提交 8-K）">Date</th>
+            <th data-tip="事件类型码：6K-EARNINGS=财报（季度/年度业绩）6K=月度运营更新 6K-ACQUISITION=收购 6K-MGMT=高管变动 6K-SHARES=股权变动">Item</th>
+            <th data-tip="从 SEC EDGAR 归档文件提取的实际公告标题（EX-99.1 展品说明）">Description</th>
+            <th data-tip="重要程度：HIGH = 财报/高管变动/重大协议（直接影响股价）MEDIUM = 月度运营更新 LOW = 常规披露">Severity</th>
         </tr></thead>
         <tbody>${events.map(e => `<tr>
             <td>${e.filing_date}</td>
@@ -402,7 +424,10 @@ function renderActions() {
 
     el.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
         <thead><tr>
-            <th>Date</th><th>Type</th><th>Description</th><th class="num">Value/Ratio</th>
+            <th data-tip="公司行动执行日期">Date</th>
+            <th data-tip="公司行动类型：SPLIT=股票拆分 DIVIDEND=股息分红 MERGER=合并 BUYBACK=股票回购">Type</th>
+            <th data-tip="公司行动的详细说明">Description</th>
+            <th class="num" data-tip="分红金额（美元/股）或拆股比例（如 3:1 表示每股变3股）">Value/Ratio</th>
         </tr></thead>
         <tbody>${items.map(a => `<tr>
             <td>${a.action_date}</td>
@@ -439,7 +464,16 @@ function renderTechnicals() {
             color = rsi > 70 ? "var(--red)" : rsi < 30 ? "var(--green)" : "";
         }
 
-        html += `<div class="indicator-item">
+        const INDICATOR_TIPS = {
+            RSI_14: "相对强弱指数（14日）\n>70 = 超买区域（注意回调风险）\n<30 = 超卖区域（可能出现反弹）\n50 = 多空中性分界线",
+            MACD: "移动平均收敛发散指标\nHistogram 为正且金叉 = 看涨\nHistogram 为负且死叉 = 看跌\nSignal = 9日信号线，Histogram = MACD-Signal",
+            BB: "布林带（Bollinger Bands，20日±2σ）\n价格触上轨 = 可能超买\n价格触下轨 = 可能超卖\nMiddle = 20日移动均线",
+            EMA_7: "7日指数移动均线（短期趋势参考）\n价格站上 EMA7 为短期偏多",
+            EMA_25: "25日指数移动均线（中期趋势参考）\n价格站上 EMA25 为中期偏多\nEMA7 > EMA25 = 短中期金叉看涨",
+            EMA_99: "99日指数移动均线（长期趋势参考）\n价格站上 EMA99 = 长期牛市格局\n价格跌破 EMA99 = 长期转弱信号",
+            VWAP: "成交量加权均价（Volume-Weighted Average Price，当日）\n价格 > VWAP = 多头主导，买方占优\n价格 < VWAP = 空头主导，卖方占优",
+        };
+        html += `<div class="indicator-item" data-tip="${INDICATOR_TIPS[key] || key}">
             <div class="indicator-name">${key}</div>
             <div class="indicator-value" ${color ? `style="color:${color}"` : ""}>${Number(v.value).toFixed(4)}</div>
             ${extra ? `<div class="indicator-extra">${extra}</div>` : ""}
@@ -463,11 +497,11 @@ function renderCorrelation() {
     if (!fufu) { el.innerHTML = '<div class="empty">FUFU not in correlation matrix</div>'; return; }
 
     el.innerHTML = `
-        <div class="stat-row"><span class="stat-label">7-Day Correlation</span><span class="stat-value">${fufu.corr_7d != null ? Number(fufu.corr_7d).toFixed(3) : "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">30-Day Correlation</span><span class="stat-value">${fufu.corr_30d != null ? Number(fufu.corr_30d).toFixed(3) : "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">90-Day Correlation</span><span class="stat-value">${fufu.corr_90d != null ? Number(fufu.corr_90d).toFixed(3) : "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Beta (30d)</span><span class="stat-value">${fufu.beta_30d != null ? Number(fufu.beta_30d).toFixed(3) : "--"}</span></div>
-        <div class="stat-row"><span class="stat-label">Data Points</span><span class="stat-value">${fufu.data_points || "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="FUFU 与 BTC 的 7 日价格相关系数\n+1 = 完全正相关（同涨同跌）\n-1 = 完全负相关\n0 = 无相关性">7-Day Correlation</span><span class="stat-value">${fufu.corr_7d != null ? Number(fufu.corr_7d).toFixed(3) : "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="30 日相关系数，反映中期走势联动性。矿企股价通常与 BTC 高度正相关">30-Day Correlation</span><span class="stat-value">${fufu.corr_30d != null ? Number(fufu.corr_30d).toFixed(3) : "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="90 日相关系数，反映长期 BTC 依赖度。FUFU 作为矿企长期与 BTC 高度绑定">90-Day Correlation</span><span class="stat-value">${fufu.corr_90d != null ? Number(fufu.corr_90d).toFixed(3) : "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="FUFU 相对 BTC 的 30 日 β 值\nβ > 1 = FUFU 涨跌幅比 BTC 更剧烈（矿企天然杠杆特征）\nβ = 1 = 与 BTC 同步\nβ < 1 = 波动性低于 BTC">Beta (30d)</span><span class="stat-value">${fufu.beta_30d != null ? Number(fufu.beta_30d).toFixed(3) : "--"}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="计算相关性和 Beta 所使用的历史价格数据点数量">Data Points</span><span class="stat-value">${fufu.data_points || "--"}</span></div>
     `;
 }
 
@@ -498,15 +532,15 @@ function renderCapitalFlow() {
 
     let html = `
         <div style="margin-bottom:12px;font-size:11px;color:var(--text-muted)">Date: ${cf.date || "--"}</div>
-        <div class="stat-row"><span class="stat-label">Total Net Flow</span>
+        <div class="stat-row"><span class="stat-label" data-tip="全部资金净流量 = 总流入 - 总流出。绿色（IN）= 净买入；红色（OUT）= 净卖出。是衡量当日整体资金意愿的核心指标">Total Net Flow</span>
             <span class="stat-value" style="color:${totalNet >= 0 ? 'var(--green)' : 'var(--red)'}">$${fmtNum(Math.abs(totalNet))} ${totalNet >= 0 ? 'IN' : 'OUT'}</span></div>
-        <div class="stat-row"><span class="stat-label">Major (Institutional)</span>
+        <div class="stat-row"><span class="stat-label" data-tip="机构超大单净流量（主力资金）。正值表示机构主动买入，是最有参考价值的资金信号">Major (Institutional)</span>
             <span class="stat-value" style="color:${(cf.major_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.major_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.major_net||0))}</span></div>
-        <div class="stat-row"><span class="stat-label">Large Orders</span>
+        <div class="stat-row"><span class="stat-label" data-tip="大单净流量（单笔金额较高，介于机构与散户之间）">Large Orders</span>
             <span class="stat-value" style="color:${(cf.large_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.large_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.large_net||0))}</span></div>
-        <div class="stat-row"><span class="stat-label">Medium Orders</span>
+        <div class="stat-row"><span class="stat-label" data-tip="中单净流量（中等规模订单）">Medium Orders</span>
             <span class="stat-value" style="color:${(cf.medium_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.medium_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.medium_net||0))}</span></div>
-        <div class="stat-row"><span class="stat-label">Small (Retail)</span>
+        <div class="stat-row"><span class="stat-label" data-tip="散户小单净流量（零售投资者合计）。散户情绪指标，往往为反向信号">Small (Retail)</span>
             <span class="stat-value" style="color:${(cf.small_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.small_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.small_net||0))}</span></div>
     `;
 
@@ -570,10 +604,10 @@ function renderMarketCapitalFlow() {
     // Right: summary stats
     html += `<div style="min-width:180px">
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">INFLOW RATIO</div>
-        <div class="stat-row"><span class="stat-label">Inst. In</span><span class="stat-value" style="font-size:12px">${(cf.major_inflow_pct||0).toFixed(1)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Inst. Out</span><span class="stat-value" style="font-size:12px">${(cf.major_outflow_pct||0).toFixed(1)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Retail In</span><span class="stat-value" style="font-size:12px">${(cf.retail_inflow_pct||0).toFixed(1)}%</span></div>
-        <div class="stat-row"><span class="stat-label">Retail Out</span><span class="stat-value" style="font-size:12px">${(cf.retail_outflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="机构资金流入量占总流入的比例">Inst. In</span><span class="stat-value" style="font-size:12px">${(cf.major_inflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="机构资金流出量占总流出的比例">Inst. Out</span><span class="stat-value" style="font-size:12px">${(cf.major_outflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="散户资金流入量占总流入的比例">Retail In</span><span class="stat-value" style="font-size:12px">${(cf.retail_inflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="散户资金流出量占总流出的比例">Retail Out</span><span class="stat-value" style="font-size:12px">${(cf.retail_outflow_pct||0).toFixed(1)}%</span></div>
     </div></div>`;
 
     el.innerHTML = html;
@@ -587,15 +621,15 @@ function renderAfterHours() {
     const ah = wb.after_hours;
     const q = wb.quote || {};
     el.innerHTML = `
-        <div class="stat-row"><span class="stat-label">After-Hours Price</span>
+        <div class="stat-row"><span class="stat-label" data-tip="盘后交易价格（美东时间 16:00–20:00）。流动性极低，大幅波动不可靠">After-Hours Price</span>
             <span class="stat-value" style="color:${(ah.change_pct||0) >= 0 ? 'var(--green)' : 'var(--red)'}">$${Number(ah.price).toFixed(2)}</span></div>
-        <div class="stat-row"><span class="stat-label">Change</span>
+        <div class="stat-row"><span class="stat-label" data-tip="盘后价格相对正常收盘价的变化幅度">Change</span>
             <span class="stat-value" style="color:${(ah.change_pct||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(ah.change_pct||0) >= 0 ? '+' : ''}${Number(ah.change_pct).toFixed(2)}%</span></div>
-        <div class="stat-row"><span class="stat-label">AH Volume</span>
+        <div class="stat-row"><span class="stat-label" data-tip="盘后成交量（通常极低，价格波动参考价值有限）">AH Volume</span>
             <span class="stat-value">${fmtNum(ah.volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">AH Range</span>
+        <div class="stat-row"><span class="stat-label" data-tip="盘后交易的最低价 ~ 最高价区间">AH Range</span>
             <span class="stat-value">$${Number(ah.low).toFixed(2)} — $${Number(ah.high).toFixed(2)}</span></div>
-        <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">
+        <div style="margin-top:12px;font-size:11px;color:var(--text-muted)" data-tip="P/E=市盈率（股价/EPS）P/B=市净率（股价/账面价值）EPS=每股收益 Turnover=换手率（今日量/流通股数）">
             P/E: ${q.pe || '--'} | EPS: $${q.eps || '--'} | P/B: ${q.pb || '--'} | Turnover: ${q.turnover_rate || '--'}%
         </div>
     `;
@@ -606,23 +640,23 @@ function renderMarketOrderbook(m) {
     if (!m) { el.innerHTML = '<div class="empty">No market data</div>'; return; }
     el.innerHTML = `
         <div class="orderbook-row">
-            <span class="orderbook-label">Best Bid</span>
+            <span class="orderbook-label" data-tip="当前最高买入报价及挂单数量（做市商买价，你卖出时的成交价）">Best Bid</span>
             <span class="orderbook-value orderbook-bid">$${Number(m.bid).toFixed(2)} <span style="font-size:12px;font-weight:400">(${m.bid_size} lot)</span></span>
         </div>
         <div class="orderbook-row">
-            <span class="orderbook-label">Best Ask</span>
+            <span class="orderbook-label" data-tip="当前最低卖出报价及挂单数量（做市商卖价，你买入时的成交价）">Best Ask</span>
             <span class="orderbook-value orderbook-ask">$${Number(m.ask).toFixed(2)} <span style="font-size:12px;font-weight:400">(${m.ask_size} lot)</span></span>
         </div>
         <div class="orderbook-row">
-            <span class="orderbook-label">Spread</span>
+            <span class="orderbook-label" data-tip="买卖价差（Ask - Bid）及占中间价的百分比。FUFU 流动性有限，价差偏大属正常；价差越小流动性越好">Spread</span>
             <span class="orderbook-value orderbook-spread">$${m.spread} (${m.spread_pct}%)</span>
         </div>
         <div class="orderbook-row">
-            <span class="orderbook-label">VWAP</span>
+            <span class="orderbook-label" data-tip="当日成交量加权均价（Volume-Weighted Average Price）。价格 > VWAP = 当日强势；< VWAP = 当日弱势">VWAP</span>
             <span class="orderbook-value">$${Number(m.vwap).toFixed(4)}</span>
         </div>
         <div class="orderbook-row">
-            <span class="orderbook-label">Last Price</span>
+            <span class="orderbook-label" data-tip="最新成交价及今日涨跌幅（相对昨日收盘价）">Last Price</span>
             <span class="orderbook-value" style="color:${m.change_pct >= 0 ? 'var(--green)' : 'var(--red)'}">$${Number(m.price).toFixed(2)} (${m.change_pct > 0 ? '+' : ''}${m.change_pct}%)</span>
         </div>
     `;
@@ -634,11 +668,11 @@ function renderMarketVolume(m) {
     const rvolClass = m.relative_volume >= 2 ? 'rvol-high' : m.relative_volume >= 0.8 ? 'rvol-normal' : 'rvol-low';
     const rvolLabel = m.relative_volume >= 2 ? 'HIGH' : m.relative_volume >= 0.8 ? 'NORMAL' : 'LOW';
     el.innerHTML = `
-        <div class="stat-row"><span class="stat-label">Today Volume</span><span class="stat-value">${fmtNum(m.volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">Avg Volume</span><span class="stat-value">${fmtNum(m.avg_volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">10D Avg Volume</span><span class="stat-value">${fmtNum(m.avg_volume_10d)}</span></div>
-        <div class="stat-row"><span class="stat-label">Relative Volume</span><span class="stat-value"><span class="rvol-badge ${rvolClass}">${m.relative_volume}x ${rvolLabel}</span></span></div>
-        <div class="stat-row"><span class="stat-label">Market Cap</span><span class="stat-value">${fmtNum(m.market_cap)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="今日已成交股数（实时更新）">Today Volume</span><span class="stat-value">${fmtNum(m.volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="历史日均成交量（用于计算相对成交量基准）">Avg Volume</span><span class="stat-value">${fmtNum(m.avg_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="近 10 个交易日平均成交量（短期均量参考）">10D Avg Volume</span><span class="stat-value">${fmtNum(m.avg_volume_10d)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="今日成交量 / 历史均量\nHIGH(>2x) = 异常放量，可能有重大消息或机构集中动作\nNORMAL = 正常水平\nLOW(<0.8x) = 缩量，观望为主">Relative Volume</span><span class="stat-value"><span class="rvol-badge ${rvolClass}">${m.relative_volume}x ${rvolLabel}</span></span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="当前市值 = 股价 × 总流通股数">Market Cap</span><span class="stat-value">${fmtNum(m.market_cap)}</span></div>
     `;
 }
 
@@ -650,8 +684,8 @@ function renderMarketRange(m) {
     const w52Range = m.week52_high - m.week52_low;
     const w52Pos = w52Range > 0 ? ((m.price - m.week52_low) / w52Range * 100).toFixed(0) : 50;
     el.innerHTML = `
-        <div class="stat-row"><span class="stat-label">Open</span><span class="stat-value">$${Number(m.open).toFixed(2)}</span></div>
-        <div class="stat-row"><span class="stat-label">Prev Close</span><span class="stat-value">$${Number(m.prev_close).toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="今日开盘价（美东时间 9:30 第一笔成交价）">Open</span><span class="stat-value">$${Number(m.open).toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="昨日收盘价（用于计算今日涨跌幅基准）">Prev Close</span><span class="stat-value">$${Number(m.prev_close).toFixed(2)}</span></div>
         <div style="margin:12px 0">
             <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">DAY RANGE</div>
             <div style="display:flex;align-items:center;gap:8px;font-size:13px">
@@ -685,8 +719,8 @@ function renderMarketPressure(m) {
             <div class="pressure-buy" style="width:${m.buy_pct}%">BUY ${m.buy_pct}%</div>
             <div class="pressure-sell" style="width:${sellPct}%">SELL ${sellPct}%</div>
         </div>
-        <div class="stat-row"><span class="stat-label">Buy Volume (est.)</span><span class="stat-value" style="color:var(--green)">${fmtNum(m.buy_volume)}</span></div>
-        <div class="stat-row"><span class="stat-label">Sell Volume (est.)</span><span class="stat-value" style="color:var(--red)">${fmtNum(m.sell_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="估算买入量：5分钟K线中收盘价 > 开盘价（阳线）的蜡烛成交量合计">Buy Volume (est.)</span><span class="stat-value" style="color:var(--green)">${fmtNum(m.buy_volume)}</span></div>
+        <div class="stat-row"><span class="stat-label" data-tip="估算卖出量：5分钟K线中收盘价 < 开盘价（阴线）的蜡烛成交量合计">Sell Volume (est.)</span><span class="stat-value" style="color:var(--red)">${fmtNum(m.sell_volume)}</span></div>
         <div style="margin-top:8px;font-size:11px;color:var(--text-muted)">Based on 5-min candle close vs open direction</div>
     `;
 }
@@ -752,9 +786,14 @@ function renderMarketPeers(m, peers) {
 
     el.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
         <thead><tr>
-            <th>Symbol</th><th class="num">Price</th><th class="num">Change</th>
-            <th class="num">Volume</th><th class="num">RVol</th><th class="num">Spread%</th>
-            <th class="num">Buy%</th><th class="num">Mkt Cap</th>
+            <th data-tip="同业竞争对手股票代码（FUFU 以琥珀色高亮显示）">Symbol</th>
+            <th class="num" data-tip="当前股价（美元）">Price</th>
+            <th class="num" data-tip="今日涨跌幅（相对昨日收盘价）">Change</th>
+            <th class="num" data-tip="今日成交量（股数）">Volume</th>
+            <th class="num" data-tip="相对成交量 = 今日量 / 历史均量。HIGH(>2x) = 异常活跃">RVol</th>
+            <th class="num" data-tip="买卖价差占中间价的百分比（流动性指标，越小流动性越好）">Spread%</th>
+            <th class="num" data-tip="买盘压力占比（估算）。>50% 表示买方占主导">Buy%</th>
+            <th class="num" data-tip="市值 = 股价 × 流通股数（公司规模参考）">Mkt Cap</th>
         </tr></thead>
         <tbody>${rows.map(r => `<tr${r.sym === SYMBOL ? ' style="background:rgba(245,158,11,.08)"' : ''}>
             <td style="font-weight:700;${r.sym === SYMBOL ? 'color:var(--accent)' : ''}">${r.sym}</td>
