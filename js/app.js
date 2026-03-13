@@ -2,6 +2,7 @@
 
 const API_BASE = "https://api.btcmine.info";
 const SYMBOL = "FUFU";
+const SYMBOL_LC = "fufu"; // Cloudflare WAF blocks uppercase tickers in URLs
 // SHA-256 hash of the access password
 const AUTH_HASH = "f65bae74278241c3d2364c3754742bc5ced87a8dfe170146571c5bcc7ba993ba";
 const AUTH_KEY = "fufu_auth_v1";
@@ -108,18 +109,18 @@ async function fetchAPI(path) {
 
 async function loadAllData() {
     const endpoints = {
-        entity:       `/api/equity/${SYMBOL}/entity`,
-        insider:      `/api/equity/${SYMBOL}/insider?limit=50`,
-        institutions: `/api/equity/${SYMBOL}/institutions`,
-        events:       `/api/equity/${SYMBOL}/events?limit=30`,
-        ownership:    `/api/equity/${SYMBOL}/ownership?limit=20`,
-        shortInterest:`/api/equity/${SYMBOL}/short-interest?limit=10`,
-        darkpool:     `/api/equity/${SYMBOL}/darkpool?limit=10`,
-        actions:      `/api/equity/${SYMBOL}/actions?limit=20`,
-        indicators:   `/api/equity/${SYMBOL}/indicators`,
+        entity:       `/api/equity/${SYMBOL_LC}/entity`,
+        insider:      `/api/equity/${SYMBOL_LC}/insider?limit=50`,
+        institutions: `/api/equity/${SYMBOL_LC}/institutions`,
+        events:       `/api/equity/${SYMBOL_LC}/events?limit=30`,
+        ownership:    `/api/equity/${SYMBOL_LC}/ownership?limit=20`,
+        shortInterest:`/api/equity/${SYMBOL_LC}/short-interest?limit=10`,
+        darkpool:     `/api/equity/${SYMBOL_LC}/darkpool?limit=10`,
+        actions:      `/api/equity/${SYMBOL_LC}/actions?limit=20`,
+        indicators:   `/api/equity/${SYMBOL_LC}/indicators`,
         correlation:  `/api/equity/correlation`,
-        alerts:       `/api/equity/alerts/recent?symbol=${SYMBOL}`,
-        quote:        `/api/market/latest?symbols=${SYMBOL}`,
+        alerts:       `/api/equity/alerts/recent?symbol=${SYMBOL_LC}`,
+        quote:        `/api/market/latest?symbols=${SYMBOL_LC}`,
         btc:          `/api/btc/price/latest`,
     };
 
