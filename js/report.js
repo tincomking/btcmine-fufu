@@ -1085,12 +1085,24 @@ function renderCommentary(r) {
         </div>`;
     }
 
+    // Analyst verdict (new detailed section)
+    if (c.analyst_verdict) {
+        html += `<div class="commentary-block">
+            <h4>ANALYST VERDICT</h4>
+            <p>${esc(c.analyst_verdict)}</p>
+        </div>`;
+    }
+
     // Commentary sections
     const sections = [
-        { key: "price_action", label: "Price Action" },
-        { key: "technical_signal", label: "Technical Signals" },
-        { key: "flow_analysis", label: "Flow Analysis" },
-        { key: "btc_correlation", label: "BTC Correlation" },
+        { key: "price_action", label: "PRICE ACTION" },
+        { key: "technical_signal", label: "TECHNICAL SIGNALS" },
+        { key: "flow_analysis", label: "FLOW ANALYSIS" },
+        { key: "smart_money_read", label: "SMART MONEY READ" },
+        { key: "btc_correlation", label: "BTC CORRELATION" },
+        { key: "peer_context", label: "PEER CONTEXT" },
+        { key: "short_squeeze_risk", label: "SHORT SQUEEZE ASSESSMENT" },
+        { key: "catalyst_watch", label: "CATALYST WATCH" },
     ];
 
     for (const sec of sections) {
@@ -1103,11 +1115,19 @@ function renderCommentary(r) {
         }
     }
 
+    // Trading plan
+    if (c.trading_plan) {
+        html += `<div class="commentary-block">
+            <h4>TRADING PLAN</h4>
+            <p>${esc(c.trading_plan)}</p>
+        </div>`;
+    }
+
     // Risk flags
     const risks = c.risk_flags || c.risks || c.risk || [];
     if (risks.length) {
         html += `<div class="commentary-block">
-            <h4>Risk Flags</h4>
+            <h4>RISK FLAGS</h4>
             <ul class="risk-list">${risks.map(r => `<li>${esc(typeof r === 'string' ? r : r.message || r.description || JSON.stringify(r))}</li>`).join("")}</ul>
         </div>`;
     }
