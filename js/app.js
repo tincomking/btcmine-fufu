@@ -108,34 +108,23 @@ async function fetchAPI(path) {
 }
 
 async function loadAllData() {
-    const endpoints = {
-        entity:       `/api/equity/${SYMBOL_LC}/entity`,
-        insider:      `/api/equity/${SYMBOL_LC}/insider?limit=50`,
-        institutions: `/api/equity/${SYMBOL_LC}/institutions`,
-        events:       `/api/equity/${SYMBOL_LC}/events?limit=30`,
-        ownership:    `/api/equity/${SYMBOL_LC}/ownership?limit=20`,
-        shortInterest:`/api/equity/${SYMBOL_LC}/short-interest?limit=10`,
-        darkpool:     `/api/equity/${SYMBOL_LC}/darkpool?limit=10`,
-        actions:      `/api/equity/${SYMBOL_LC}/actions?limit=20`,
-        indicators:   `/api/equity/${SYMBOL_LC}/indicators`,
-        correlation:  `/api/equity/correlation`,
-        alerts:       `/api/equity/alerts/recent?symbol=${SYMBOL_LC}`,
-        quote:        `/api/market/latest?symbols=${SYMBOL_LC}`,
-        btc:          `/api/btc/price/latest`,
-    };
-
-    const results = await Promise.allSettled(
-        Object.entries(endpoints).map(async ([key, url]) => {
-            const data = await fetchAPI(url);
-            return [key, data];
-        })
-    );
-
-    for (const r of results) {
-        if (r.status === "fulfilled" && r.value) {
-            const [key, data] = r.value;
-            if (data) DATA[key] = data;
-        }
+    // Single aggregated endpoint — bypasses Cloudflare WAF keyword filtering
+    const dashboard = await fetchAPI(`/api/equity/${SYMBOL_LC}/dashboard`);
+    if (dashboard) {
+        DATA.entity = dashboard.entity ? { entity: dashboard.entity } : null;
+        DATA.insider = { trades: dashboard.insider || [] };
+        DATA.institutions = { holdings: dashboard.institutions || [] };
+        DATA.events = { events: dashboard.events || [] };
+        DATA.ownership = { ownership: dashboard.ownership || [] };
+        DATA.shortInterest = { short_interest: dashboard.short_interest || [] };
+        DATA.darkpool = { darkpool: dashboard.darkpool || [] };
+        DATA.actions = { actions: dashboard.actions || [] };
+        DATA.indicators = { indicators: dashboard.indicators || {} };
+        DATA.correlation = { correlations: dashboard.correlation?.data ? { [SYMBOL]: dashboard.correlation.data } : {} };
+        DATA.alerts = { alerts: dashboard.alerts || [] };
+        // Price
+        DATA.quote = dashboard.price ? { [SYMBOL]: dashboard.price } : null;
+        DATA.btc = dashboard.btc_price ? { price: dashboard.btc_price } : null;
     }
 
     renderAll();
@@ -168,32 +157,21 @@ function renderAll() {
 
 // ─── Price Header ───────────────────────────────────────
 function renderPriceHeader() {
-    // FUFU price
+    // FUFU price from dashboard aggregated data
     if (DATA.quote) {
-        const quotes = DATA.quote.quotes || DATA.quote;
-        let fufu = null;
-        if (Array.isArray(quotes)) {
-            fufu = quotes.find(q => q.symbol === SYMBOL);
-        } else if (quotes[SYMBOL]) {
-            fufu = quotes[SYMBOL];
-        }
-        if (fufu) {
-            const price = fufu.price || fufu.regularMarketPrice;
-            const change = fufu.change_pct || fufu.regularMarketChangePercent || 0;
-            document.getElementById("fufu-price").textContent = `$${Number(price).toFixed(2)}`;
+        const fufu = DATA.quote[SYMBOL] || DATA.quote;
+        if (fufu && fufu.price) {
+            document.getElementById("fufu-price").textContent = `$${Number(fufu.price).toFixed(2)}`;
             const changeEl = document.getElementById("fufu-change");
-            const pct = Number(change).toFixed(2);
+            const pct = Number(fufu.change_pct || 0).toFixed(2);
             changeEl.textContent = `${pct > 0 ? "+" : ""}${pct}%`;
             changeEl.className = `price-change ${pct >= 0 ? "up" : "down"}`;
         }
     }
     // BTC price
-    if (DATA.btc) {
-        const btcPrice = DATA.btc.price || DATA.btc.USD;
-        if (btcPrice) {
-            document.getElementById("btc-price").textContent =
-                `$${Number(btcPrice).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-        }
+    if (DATA.btc && DATA.btc.price) {
+        document.getElementById("btc-price").textContent =
+            `$${Number(DATA.btc.price).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
     }
 }
 
