@@ -142,6 +142,7 @@ function updateLastUpdate() {
 // ─── Render Functions ───────────────────────────────────
 function renderAll() {
     renderPriceHeader();
+    renderPriceChart();
     renderEntity();
     renderShortSummary();
     renderDarkpool();
@@ -806,6 +807,270 @@ function renderMarketPeers(m, peers) {
             <td class="num">${fmtNum(r.market_cap)}</td>
         </tr>`).join("")}</tbody>
     </table></div>`;
+}
+
+// ─── Price Chart (Canvas) ────────────────────────────
+function renderPriceChart() {
+    const container = document.getElementById("chart-container");
+    if (!container) return;
+
+    const intraday = DATA.market?.intraday;
+    if (!intraday?.length) {
+        // Keep canvas but show message
+        const canvas = document.getElementById("price-chart");
+        if (canvas) canvas.style.display = "none";
+        if (!container.querySelector(".empty")) {
+            const msg = document.createElement("div");
+            msg.className = "empty";
+            msg.textContent = "盘中数据暂不可用（非交易时段）";
+            container.appendChild(msg);
+        }
+        return;
+    }
+
+    // Remove any empty message
+    const emptyMsg = container.querySelector(".empty");
+    if (emptyMsg) emptyMsg.remove();
+
+    const canvas = document.getElementById("price-chart");
+    canvas.style.display = "block";
+
+    const dpr = window.devicePixelRatio || 1;
+    const w = container.clientWidth;
+    const h = 320;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
+
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+
+    // Layout
+    const pad = { top: 24, right: 65, bottom: 32, left: 12 };
+    const chartW = w - pad.left - pad.right;
+    const priceH = (h - pad.top - pad.bottom) * 0.72;
+    const gap = (h - pad.top - pad.bottom) * 0.06;
+    const volH = (h - pad.top - pad.bottom) * 0.22;
+    const volTop = pad.top + priceH + gap;
+
+    // Data
+    const closes = intraday.map(c => c.close);
+    const opens = intraday.map(c => c.open);
+    const highs = intraday.map(c => c.high);
+    const lows = intraday.map(c => c.low);
+    const volumes = intraday.map(c => c.volume);
+    const times = intraday.map(c => c.time);
+    const allPrices = intraday.flatMap(c => [c.high, c.low]);
+    const minP = Math.min(...allPrices) * 0.998;
+    const maxP = Math.max(...allPrices) * 1.002;
+    const maxV = Math.max(...volumes, 1);
+    const rangeP = maxP - minP || 1;
+
+    // Trend color
+    const isUp = closes[closes.length - 1] >= closes[0];
+    const lineColor = isUp ? "#10b981" : "#ef4444";
+    const fillTop = isUp ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)";
+    const fillBot = "rgba(0,0,0,0)";
+
+    // Mappers
+    const xMap = i => pad.left + (i / Math.max(closes.length - 1, 1)) * chartW;
+    const yMap = p => pad.top + (1 - (p - minP) / rangeP) * priceH;
+
+    // Clear
+    ctx.clearRect(0, 0, w, h);
+
+    // Horizontal grid + price labels
+    ctx.textAlign = "left";
+    ctx.font = "11px -apple-system, BlinkMacSystemFont, sans-serif";
+    const gridN = 5;
+    for (let i = 0; i <= gridN; i++) {
+        const y = pad.top + (i / gridN) * priceH;
+        const price = maxP - (i / gridN) * rangeP;
+        ctx.strokeStyle = "rgba(30,41,59,0.4)";
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(w - pad.right, y);
+        ctx.stroke();
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("$" + price.toFixed(2), w - pad.right + 8, y + 4);
+    }
+
+    // Price area fill (gradient)
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + priceH);
+    grad.addColorStop(0, fillTop);
+    grad.addColorStop(1, fillBot);
+    ctx.beginPath();
+    ctx.moveTo(xMap(0), yMap(closes[0]));
+    for (let i = 1; i < closes.length; i++) ctx.lineTo(xMap(i), yMap(closes[i]));
+    ctx.lineTo(xMap(closes.length - 1), pad.top + priceH);
+    ctx.lineTo(xMap(0), pad.top + priceH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Price line
+    ctx.beginPath();
+    ctx.moveTo(xMap(0), yMap(closes[0]));
+    for (let i = 1; i < closes.length; i++) ctx.lineTo(xMap(i), yMap(closes[i]));
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.stroke();
+
+    // Current price dashed line
+    const lastPrice = closes[closes.length - 1];
+    const lastY = yMap(lastPrice);
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = lineColor;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, lastY);
+    ctx.lineTo(w - pad.right, lastY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Current price badge
+    ctx.fillStyle = lineColor;
+    const badgeW = 58, badgeH = 20;
+    const badgeX = w - pad.right + 2;
+    const badgeY = lastY - badgeH / 2;
+    ctx.beginPath();
+    ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("$" + lastPrice.toFixed(2), badgeX + badgeW / 2, badgeY + 14);
+
+    // Volume bars
+    const barW = Math.max(chartW / volumes.length * 0.7, 2);
+    for (let i = 0; i < volumes.length; i++) {
+        const barH = (volumes[i] / maxV) * volH;
+        const x = xMap(i) - barW / 2;
+        const y = volTop + volH - barH;
+        const up = closes[i] >= opens[i];
+        ctx.fillStyle = up ? "rgba(16,185,129,0.5)" : "rgba(239,68,68,0.5)";
+        ctx.fillRect(x, y, barW, barH);
+    }
+
+    // Volume divider line
+    ctx.strokeStyle = "rgba(30,41,59,0.3)";
+    ctx.lineWidth = 0.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, volTop - gap / 2);
+    ctx.lineTo(w - pad.right, volTop - gap / 2);
+    ctx.stroke();
+
+    // Volume label
+    ctx.fillStyle = "#475569";
+    ctx.font = "10px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("VOL", w - pad.right + 8, volTop + 10);
+
+    // Time labels
+    ctx.fillStyle = "#64748b";
+    ctx.font = "10px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "center";
+    const step = Math.max(Math.ceil(times.length / 8), 1);
+    for (let i = 0; i < times.length; i += step) {
+        ctx.fillText(times[i], xMap(i), h - 6);
+    }
+    // Always show last time
+    if (times.length > 1) {
+        ctx.fillText(times[times.length - 1], xMap(times.length - 1), h - 6);
+    }
+
+    // Last dot
+    ctx.beginPath();
+    ctx.arc(xMap(closes.length - 1), lastY, 4, 0, Math.PI * 2);
+    ctx.fillStyle = lineColor;
+    ctx.fill();
+    ctx.strokeStyle = "#0a0e17";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // ── Tooltip + crosshair on hover ──
+    // Create tooltip element if not exists
+    let tooltip = container.querySelector(".chart-tooltip");
+    if (!tooltip) {
+        tooltip = document.createElement("div");
+        tooltip.className = "chart-tooltip";
+        container.appendChild(tooltip);
+    }
+    let crossH = container.querySelector(".chart-crosshair-h");
+    let crossV = container.querySelector(".chart-crosshair-v");
+    if (!crossH) {
+        crossH = document.createElement("div");
+        crossH.className = "chart-crosshair-h";
+        container.appendChild(crossH);
+    }
+    if (!crossV) {
+        crossV = document.createElement("div");
+        crossV.className = "chart-crosshair-v";
+        container.appendChild(crossV);
+    }
+
+    // Store chart params for mouse handler
+    canvas._chartData = { intraday, xMap, yMap, pad, w, h, priceH, volTop, volH, closes, times, volumes, opens, highs, lows };
+
+    canvas.onmousemove = function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const cd = canvas._chartData;
+
+        if (mx < cd.pad.left || mx > cd.w - cd.pad.right || my < cd.pad.top || my > cd.h - 4) {
+            tooltip.style.display = "none";
+            crossH.style.display = "none";
+            crossV.style.display = "none";
+            return;
+        }
+
+        // Find closest candle index
+        const ratio = (mx - cd.pad.left) / (cd.w - cd.pad.left - cd.pad.right);
+        const idx = Math.round(ratio * (cd.closes.length - 1));
+        if (idx < 0 || idx >= cd.closes.length) return;
+
+        const c = cd.intraday[idx];
+        const cx = cd.xMap(idx);
+        const cy = cd.yMap(c.close);
+
+        // Crosshair
+        crossH.style.display = "block";
+        crossH.style.top = cy + "px";
+        crossV.style.display = "block";
+        crossV.style.left = cx + "px";
+        crossV.style.top = cd.pad.top + "px";
+        crossV.style.height = (cd.priceH + cd.volH + (cd.volTop - cd.pad.top - cd.priceH)) + "px";
+
+        // Tooltip content
+        const chg = ((c.close - c.open) / c.open * 100).toFixed(2);
+        const chgSign = chg >= 0 ? "+" : "";
+        const color = c.close >= c.open ? "var(--green)" : "var(--red)";
+        tooltip.innerHTML = `
+            <div style="color:var(--text-muted);margin-bottom:2px">${c.time}</div>
+            <div class="tt-price" style="color:${color}">$${c.close.toFixed(2)} <span style="font-size:12px">${chgSign}${chg}%</span></div>
+            <div class="tt-vol">O:$${c.open.toFixed(2)} H:$${c.high.toFixed(2)} L:$${c.low.toFixed(2)}</div>
+            <div class="tt-vol">Vol: ${fmtNum(c.volume)}</div>
+        `;
+        tooltip.style.display = "block";
+
+        // Position tooltip
+        let tx = cx + 14;
+        if (tx + 160 > cd.w) tx = cx - 170;
+        let ty = cy - 40;
+        if (ty < 0) ty = cy + 14;
+        tooltip.style.left = tx + "px";
+        tooltip.style.top = ty + "px";
+    };
+
+    canvas.onmouseleave = function() {
+        tooltip.style.display = "none";
+        crossH.style.display = "none";
+        crossV.style.display = "none";
+    };
 }
 
 // ─── Utilities ──────────────────────────────────────────

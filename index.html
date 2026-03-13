@@ -62,37 +62,53 @@
         <main class="main">
             <!-- Overview -->
             <section id="sec-overview" class="section active">
+                <!-- Price Chart -->
+                <div class="card full" style="margin-bottom:16px">
+                    <h3>Price Chart — 价格走势</h3>
+                    <p class="card-desc">日内5分钟价格走势及成交量分布，实时更新。绿色表示上涨趋势，红色表示下跌趋势。下方柱状图为对应时段成交量。</p>
+                    <div id="chart-container" style="position:relative;min-height:100px">
+                        <canvas id="price-chart"></canvas>
+                    </div>
+                </div>
+
                 <div class="grid-3">
                     <div class="card" id="card-entity">
                         <h3>Company Profile</h3>
+                        <p class="card-desc">公司基本信息：所属行业、交易所、市值及标准标识符（CUSIP/ISIN）。CUSIP 用于 13F 机构持仓精确匹配。</p>
                         <div id="entity-content" class="card-body">Loading...</div>
                     </div>
                     <div class="card" id="card-short-summary">
                         <h3>Short Interest Summary</h3>
+                        <p class="card-desc">最新做空数据摘要。做空占流通股比例 >20% 可能预示轧空（Short Squeeze）风险；空头回补天数（DTC）越高，空头平仓压力越大。</p>
                         <div id="short-summary-content" class="card-body">Loading...</div>
                     </div>
                     <div class="card" id="card-darkpool">
                         <h3>Dark Pool Activity</h3>
+                        <p class="card-desc">暗池（ATS，另类交易系统）成交量占总成交量的比例。高暗池占比通常表示机构在进行大宗交易，避免影响公开市场价格。数据来源：FINRA ATS 透明度报告。</p>
                         <div id="darkpool-content" class="card-body">Loading...</div>
                     </div>
                 </div>
                 <div class="grid-2">
                     <div class="card">
                         <h3>Capital Flow (Webull)</h3>
+                        <p class="card-desc">主力资金（机构大单）与散户资金的净流入/流出对比。正值=买入力量占优，负值=卖出力量占优。底部柱状图显示机构与散户的资金流入占比。</p>
                         <div id="capitalflow-content" class="card-body">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Recent Insider Trades</h3>
+                        <p class="card-desc">近30天公司内部人（CEO/CFO/董事/持股10%以上股东）交易记录（SEC Form 4 申报）。内部人集中增持通常是看好公司前景的积极信号。</p>
                         <div id="insider-preview" class="card-body">Loading...</div>
                     </div>
                 </div>
                 <div class="grid-2">
                     <div class="card">
                         <h3>Recent Events (8-K)</h3>
+                        <p class="card-desc">近期 SEC 8-K 重大事件披露：高管变更、收购公告、业绩预告、股东协议变更等关键信息。按严重程度（High/Medium/Low）分级标注。</p>
                         <div id="events-preview" class="card-body">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Corporate Actions</h3>
+                        <p class="card-desc">拆股（Split）、分红（Dividend）等公司行动历史记录。这些事件会直接影响股价和持仓数量，需关注除权除息日期。</p>
                         <div id="actions-content" class="card-body">Loading...</div>
                     </div>
                 </div>
@@ -103,43 +119,52 @@
                 <div class="grid-3">
                     <div class="card">
                         <h3>Level 1 Order Book</h3>
+                        <p class="card-desc">一级盘口：最优买卖报价（Bid/Ask）及挂单量（Lot）。买卖价差（Spread）越小表示流动性越好。VWAP 为成交量加权平均价，机构常以此为交易基准。</p>
                         <div id="market-orderbook" class="card-body">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Volume Analysis</h3>
+                        <p class="card-desc">今日成交量与历史均量对比。相对成交量 RVol>2x 表示异常活跃（可能有重大消息驱动），RVol<0.8x 表示交投清淡。</p>
                         <div id="market-volume" class="card-body">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>After Hours & Metrics</h3>
+                        <p class="card-desc">盘后交易数据（16:00-20:00 ET）及核心估值指标。P/E=市盈率，EPS=每股收益，P/B=市净率，换手率反映交易活跃度。</p>
                         <div id="market-afterhours" class="card-body">Loading...</div>
                     </div>
                 </div>
                 <div class="grid-3">
                     <div class="card">
                         <h3>Price Range</h3>
+                        <p class="card-desc">当日及52周价格区间。圆点标示当前价格位置。接近52周低点可能是底部支撑区，接近高点则需警惕回调压力。</p>
                         <div id="market-range" class="card-body">Loading...</div>
                     </div>
                     <div class="card" style="grid-column: span 2">
                         <h3>Capital Flow Analysis</h3>
+                        <p class="card-desc">按订单规模分类的资金净流入详情。Major=机构大单（通常>50万美元），Large=大单，Medium=中单，Small=散户小单。机构资金流向是判断主力意图的关键指标。</p>
                         <div id="market-capitalflow" class="card-body">Loading...</div>
                     </div>
                 </div>
                 <div class="grid-2">
                     <div class="card">
                         <h3>Buy / Sell Pressure</h3>
+                        <p class="card-desc">基于5分钟K线方向估算的多空力量比例。收盘价>开盘价记为买入量，反之记为卖出量。Buy% 持续高于 60% 表示强烈买入意愿。</p>
                         <div id="market-pressure" class="card-body">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Volume Profile</h3>
+                        <p class="card-desc">各价格区间的累计成交量分布图。高成交量价格区域（量堆区）通常构成强支撑或阻力位。金色高亮区间为当前价格所在位置。</p>
                         <div id="market-profile" class="card-body">Loading...</div>
                     </div>
                 </div>
                 <div class="card full">
                     <h3>Intraday 5-Min Candles</h3>
+                    <p class="card-desc">当日5分钟分时走势数据。绿色=收涨（收盘>开盘），红色=收跌。右侧为该时段成交量，可用于判断关键价格变动是否有量能配合。</p>
                     <div id="market-intraday" class="card-body">Loading...</div>
                 </div>
                 <div class="card full" style="margin-top:16px;">
                     <h3>Peer Comparison</h3>
+                    <p class="card-desc">FUFU 与 MARA、RIOT、CLSK、CIFR 等比特币矿企的实时横向对比。关注相对成交量（RVol）和涨跌幅差异，判断 FUFU 是否跑赢/跑输同行。金色高亮行为 FUFU。</p>
                     <div id="market-peers" class="card-body">Loading...</div>
                 </div>
             </section>
@@ -148,6 +173,7 @@
             <section id="sec-insider" class="section">
                 <div class="card full">
                     <h3>SEC Form 4 — Insider Transactions</h3>
+                    <p class="card-desc">公司内部人所有证券交易完整明细（SEC 强制披露）。交易类型：BUY=增持，SELL=减持，GRANT=期权/股权授予，EXERCISE=期权行权，GIFT=赠与，TAX=代扣税款卖出。大额增持通常是管理层对公司前景有信心的信号。</p>
                     <div id="insider-full" class="card-body">Loading...</div>
                 </div>
             </section>
@@ -156,10 +182,12 @@
             <section id="sec-institutions" class="section">
                 <div class="card full">
                     <h3>SEC 13F — Institutional Holdings</h3>
+                    <p class="card-desc">管理资产超1亿美元的机构投资者季度持仓报告。关注持仓变化（Change）列：正数=增持，负数=减持。Vanguard、BlackRock 等大型被动基金通常跟随指数调仓，而对冲基金的主动增减持更具参考价值。</p>
                     <div id="institutions-full" class="card-body">Loading...</div>
                 </div>
                 <div class="card full" style="margin-top:16px;">
                     <h3>SC 13G/13D — Major Shareholders (5%+)</h3>
+                    <p class="card-desc">持股超过5%的重大股东披露。SC 13G=被动投资（纯财务目的），SC 13D=可能有维权/激进意图（如要求换管理层、推动出售等）。13D 通常比 13G 更值得关注。</p>
                     <div id="ownership-full" class="card-body">Loading...</div>
                 </div>
             </section>
@@ -169,10 +197,12 @@
                 <div class="grid-2">
                     <div class="card">
                         <h3>Short Interest History</h3>
+                        <p class="card-desc">每两周公布一次的做空持仓历史趋势（FINRA 数据）。Short Vol=做空股数，% Float=占流通股比例，DTC=以日均成交量计算空头需要多少天才能回补所有空头仓位。DTC 突然升高可能预示轧空行情。</p>
                         <div id="short-full" class="card-body">Loading...</div>
                     </div>
                     <div class="card">
                         <h3>Dark Pool Volume</h3>
+                        <p class="card-desc">暗池（ATS）周度成交量趋势。Dark%=暗池成交量占总成交量比例。暗池占比突然升高可能暗示有大型机构在悄悄建仓或减仓，值得密切关注后续价格走向。</p>
                         <div id="darkpool-full" class="card-body">Loading...</div>
                     </div>
                 </div>
@@ -182,6 +212,7 @@
             <section id="sec-events" class="section">
                 <div class="card full">
                     <h3>SEC 8-K Material Events</h3>
+                    <p class="card-desc">SEC 8-K 重大事件完整列表。8-K 是美股上市公司必须在重大事件发生后 4 个工作日内提交的报告，涵盖高管变更（Item 5.02）、财务业绩（Item 2.02）、资产收购/出售（Item 2.01）、股东投票（Item 5.07）等。按严重程度分级：HIGH=重大影响，MEDIUM=需关注，LOW=常规披露。</p>
                     <div id="events-full" class="card-body">Loading...</div>
                 </div>
             </section>
@@ -190,10 +221,12 @@
             <section id="sec-technicals" class="section">
                 <div class="card full">
                     <h3>Technical Indicators</h3>
+                    <p class="card-desc">核心技术分析指标。RSI>70=超买（可能回调），RSI<30=超卖（可能反弹）。MACD 金叉=买入信号，死叉=卖出信号。布林带（BB）上轨为压力、下轨为支撑。EMA7/25/99 分别为短/中/长期均线，价格站上均线为多头排列。VWAP 为机构交易基准价。</p>
                     <div id="technicals-content" class="card-body">Loading...</div>
                 </div>
                 <div class="card full" style="margin-top:16px;">
                     <h3>BTC Correlation</h3>
+                    <p class="card-desc">FUFU 股价与 BTC 价格的滚动相关系数（7/30/90天）。相关系数范围 -1 到 +1：正值表示同涨同跌，越接近1相关性越强。Beta 值>1 表示 FUFU 波动幅度大于 BTC，<1 则更平稳。作为矿企，FUFU 股价通常与 BTC 保持较高正相关。</p>
                     <div id="correlation-content" class="card-body">Loading...</div>
                 </div>
             </section>
