@@ -670,7 +670,7 @@ function renderMarketDepth() {
     const wb = DATA.webull;
     const depth = wb && wb.depth;
     if (!depth || (!depth.bids && !depth.asks) || ((!depth.bids || !depth.bids.length) && (!depth.asks || !depth.asks.length))) {
-        el.innerHTML = '<div class="empty"><span class="lang-zh">L2 深度数据仅在美股盘中可用（美东 9:30-16:00）</span><span class="lang-en" style="display:none">L2 depth data available during US market hours only (9:30-16:00 ET)</span></div>';
+        el.innerHTML = '<div class="empty"><span class="lang-zh">L2 深度数据仅在美股盘中可用（美东 9:30-16:00 / 新加坡 21:30-04:00）。盘中数据将自动缓存至下次开盘。</span><span class="lang-en" style="display:none">L2 depth only available during US market hours (ET 9:30-16:00 / SGT 21:30-04:00). Data is cached once captured.</span></div>';
         // re-apply lang
         const lang = (typeof loadPrefs === "function") ? loadPrefs().lang : "zh";
         if (lang === "en") {
@@ -753,6 +753,14 @@ function renderMarketDepth() {
     html += `<span>Ask Vol: ${fmtNum(totalAskVol)}</span>`;
     html += `</div>`;
     html += '</div>';
+
+    // Show depth timestamp if cached
+    const depthTs = wb.depth_ts;
+    if (depthTs) {
+        const d = new Date(depthTs);
+        const tsStr = d.toLocaleString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
+        html += `<div style="text-align:right;font-size:11px;color:var(--text-muted);margin-top:6px">Snapshot: ${tsStr} ET</div>`;
+    }
 
     html += '</div>';
     el.innerHTML = html;
