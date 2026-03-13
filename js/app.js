@@ -124,6 +124,7 @@ async function loadAllData() {
         DATA.alerts = { alerts: dashboard.alerts || [] };
         DATA.market = dashboard.market || null;
         DATA.marketPeers = dashboard.market_peers || null;
+        DATA.webull = dashboard.webull || null;
         // Price
         DATA.quote = dashboard.price ? { [SYMBOL]: dashboard.price } : null;
         DATA.btc = dashboard.btc_price ? { price: dashboard.btc_price } : null;
@@ -148,6 +149,7 @@ function renderAll() {
     renderEventsPreview();
     renderActions();
     renderMarketData();
+    renderCapitalFlow();
     renderInsiderFull();
     renderInstitutionsFull();
     renderOwnershipFull();
@@ -479,6 +481,124 @@ function renderMarketData() {
     renderMarketProfile(m);
     renderMarketIntraday(m);
     renderMarketPeers(m, DATA.marketPeers);
+    renderAfterHours();
+    renderMarketCapitalFlow();
+}
+
+function renderCapitalFlow() {
+    const el = document.getElementById("capitalflow-content");
+    if (!el) return;
+    const wb = DATA.webull;
+    if (!wb || !wb.capital_flow) { el.innerHTML = '<div class="empty">No capital flow data</div>'; return; }
+    const cf = wb.capital_flow;
+    const totalIn = (cf.major_inflow || 0) + (cf.retail_inflow || 0);
+    const totalOut = (cf.major_outflow || 0) + (cf.retail_outflow || 0);
+    const totalNet = totalIn - totalOut;
+    const majorPct = totalIn > 0 ? ((cf.major_inflow || 0) / totalIn * 100).toFixed(1) : 0;
+
+    let html = `
+        <div style="margin-bottom:12px;font-size:11px;color:var(--text-muted)">Date: ${cf.date || "--"}</div>
+        <div class="stat-row"><span class="stat-label">Total Net Flow</span>
+            <span class="stat-value" style="color:${totalNet >= 0 ? 'var(--green)' : 'var(--red)'}">$${fmtNum(Math.abs(totalNet))} ${totalNet >= 0 ? 'IN' : 'OUT'}</span></div>
+        <div class="stat-row"><span class="stat-label">Major (Institutional)</span>
+            <span class="stat-value" style="color:${(cf.major_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.major_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.major_net||0))}</span></div>
+        <div class="stat-row"><span class="stat-label">Large Orders</span>
+            <span class="stat-value" style="color:${(cf.large_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.large_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.large_net||0))}</span></div>
+        <div class="stat-row"><span class="stat-label">Medium Orders</span>
+            <span class="stat-value" style="color:${(cf.medium_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.medium_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.medium_net||0))}</span></div>
+        <div class="stat-row"><span class="stat-label">Small (Retail)</span>
+            <span class="stat-value" style="color:${(cf.small_net||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(cf.small_net||0) >= 0 ? '+' : ''}$${fmtNum(Math.abs(cf.small_net||0))}</span></div>
+    `;
+
+    // Pressure bar: institutional vs retail
+    if (totalIn > 0) {
+        html += `
+        <div style="margin-top:12px;font-size:11px;color:var(--text-muted);margin-bottom:4px">INFLOW COMPOSITION</div>
+        <div class="pressure-bar">
+            <div class="pressure-buy" style="width:${majorPct}%;background:var(--blue)">Inst ${majorPct}%</div>
+            <div class="pressure-sell" style="width:${100-majorPct}%;background:var(--purple)">Retail ${(100-majorPct).toFixed(1)}%</div>
+        </div>`;
+    }
+
+    // History chart
+    const hist = wb.capital_flow_history;
+    if (hist && hist.length) {
+        html += '<div style="margin-top:12px;font-size:11px;color:var(--text-muted);margin-bottom:4px">RECENT DAYS</div>';
+        for (const h of hist.slice(0, 5)) {
+            const net = (h.large_net || 0) + (h.medium_net || 0) + (h.small_net || 0);
+            const dt = h.date ? h.date.slice(4,6)+'/'+h.date.slice(6) : '--';
+            html += `<div class="stat-row"><span class="stat-label">${dt}</span>
+                <span class="stat-value" style="color:${net >= 0 ? 'var(--green)' : 'var(--red)'}; font-size:12px">${net >= 0 ? '+' : ''}$${fmtNum(Math.abs(net))}</span></div>`;
+        }
+    }
+
+    el.innerHTML = html;
+}
+
+function renderMarketCapitalFlow() {
+    const el = document.getElementById("market-capitalflow");
+    if (!el) return;
+    const wb = DATA.webull;
+    if (!wb || !wb.capital_flow) { el.innerHTML = '<div class="empty">No capital flow data</div>'; return; }
+    const cf = wb.capital_flow;
+
+    // Build bar chart of inflow vs outflow by size
+    const categories = [
+        { label: "Major (Inst.)", inflow: cf.major_inflow || 0, outflow: cf.major_outflow || 0, color: "var(--blue)" },
+        { label: "Large", inflow: cf.large_net > 0 ? cf.large_net : 0, outflow: cf.large_net < 0 ? Math.abs(cf.large_net) : 0, color: "var(--purple)" },
+        { label: "Medium", inflow: cf.medium_net > 0 ? cf.medium_net : 0, outflow: cf.medium_net < 0 ? Math.abs(cf.medium_net) : 0, color: "var(--accent)" },
+        { label: "Small (Retail)", inflow: cf.small_net > 0 ? cf.small_net : 0, outflow: cf.small_net < 0 ? Math.abs(cf.small_net) : 0, color: "var(--green)" },
+    ];
+    const maxVal = Math.max(...categories.map(c => Math.max(c.inflow, c.outflow)), 1);
+
+    let html = `<div style="display:flex;gap:24px">`;
+    // Left: bar chart
+    html += `<div style="flex:1"><div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">NET FLOW BY ORDER SIZE</div>`;
+    for (const cat of categories) {
+        const net = cat.inflow - cat.outflow;
+        const pct = Math.abs(net) / maxVal * 100;
+        html += `<div class="vol-bar-row" style="margin-bottom:4px">
+            <span class="vol-bar-label" style="width:90px">${cat.label}</span>
+            <div class="vol-bar-track">
+                <div class="vol-bar-fill" style="width:${Math.min(pct,100)}%;background:${net >= 0 ? 'var(--green)' : 'var(--red)'}"></div>
+            </div>
+            <span class="vol-bar-val" style="width:80px;color:${net >= 0 ? 'var(--green)' : 'var(--red)'}">${net >= 0 ? '+' : ''}$${fmtNum(Math.abs(net))}</span>
+        </div>`;
+    }
+    html += `</div>`;
+
+    // Right: summary stats
+    html += `<div style="min-width:180px">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">INFLOW RATIO</div>
+        <div class="stat-row"><span class="stat-label">Inst. In</span><span class="stat-value" style="font-size:12px">${(cf.major_inflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Inst. Out</span><span class="stat-value" style="font-size:12px">${(cf.major_outflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Retail In</span><span class="stat-value" style="font-size:12px">${(cf.retail_inflow_pct||0).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="stat-label">Retail Out</span><span class="stat-value" style="font-size:12px">${(cf.retail_outflow_pct||0).toFixed(1)}%</span></div>
+    </div></div>`;
+
+    el.innerHTML = html;
+}
+
+function renderAfterHours() {
+    const el = document.getElementById("market-afterhours");
+    if (!el) return;
+    const wb = DATA.webull;
+    if (!wb || !wb.after_hours) { el.innerHTML = '<div class="empty">No after-hours data</div>'; return; }
+    const ah = wb.after_hours;
+    const q = wb.quote || {};
+    el.innerHTML = `
+        <div class="stat-row"><span class="stat-label">After-Hours Price</span>
+            <span class="stat-value" style="color:${(ah.change_pct||0) >= 0 ? 'var(--green)' : 'var(--red)'}">$${Number(ah.price).toFixed(2)}</span></div>
+        <div class="stat-row"><span class="stat-label">Change</span>
+            <span class="stat-value" style="color:${(ah.change_pct||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${(ah.change_pct||0) >= 0 ? '+' : ''}${Number(ah.change_pct).toFixed(2)}%</span></div>
+        <div class="stat-row"><span class="stat-label">AH Volume</span>
+            <span class="stat-value">${fmtNum(ah.volume)}</span></div>
+        <div class="stat-row"><span class="stat-label">AH Range</span>
+            <span class="stat-value">$${Number(ah.low).toFixed(2)} — $${Number(ah.high).toFixed(2)}</span></div>
+        <div style="margin-top:12px;font-size:11px;color:var(--text-muted)">
+            P/E: ${q.pe || '--'} | EPS: $${q.eps || '--'} | P/B: ${q.pb || '--'} | Turnover: ${q.turnover_rate || '--'}%
+        </div>
+    `;
 }
 
 function renderMarketOrderbook(m) {
