@@ -148,7 +148,7 @@ function transformDashboard(d) {
 // ─── Report Loading ─────────────────────────────────────
 async function loadLatestReport() {
     showLoading();
-    const data = await fetchAPI(`/api/equity/${SYMBOL}/dashboard`);
+    const data = await fetchAPI(`/api/equity/${SYMBOL_LC}/dashboard`);
     if (data) {
         DASHBOARD = data;
         REPORT = transformDashboard(data);
