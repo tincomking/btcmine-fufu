@@ -67,7 +67,7 @@ Private stock intelligence dashboard for BitFuFu Inc (NASDAQ: FUFU), serving the
 ## Technical Notes
 
 - **Cloudflare WAF**: Blocks individual `/api/equity/{sym}/xxx` paths (insider, events, report, etc.). Only `/dashboard` aggregate endpoint passes. All frontend JS must use dashboard.
-- **FactSet API**: Key `***REDACTED***` / `***REDACTED***` — auth works but all price endpoints return 403. Need FactSet account manager to enable NASDAQ market data entitlements.
+- **FactSet API**: Credentials stored in `.env` (FACTSET_USERNAME / FACTSET_API_KEY) — auth works but all price endpoints return 403. Need FactSet account manager to enable NASDAQ market data entitlements.
 - **Webull L2 depth**: Returns `{}` when market closed. Should work during US market hours (9:30 PM - 4:00 AM SGT).
 - **GitHub Pages SSL**: Custom domain `fufu.btcmine.info` — cert pending provisioning by GitHub.
 - **FUFU Analyst Coverage**: HC Wainwright ($7 Buy), Roth Capital ($6 Buy), B.Riley ($7.31 Buy), Northland ($5.50 Hold)
