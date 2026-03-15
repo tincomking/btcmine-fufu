@@ -1,5 +1,6 @@
 /* === FUFU Intelligence — Private Dashboard === */
 
+const APP_VERSION = "v1.0316A";
 const API_BASE = "https://api.btcmine.info";
 const SYMBOL = "FUFU";
 const SYMBOL_LC = "fufu"; // Cloudflare WAF blocks uppercase tickers in URLs
